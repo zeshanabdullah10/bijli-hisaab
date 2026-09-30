@@ -93,7 +93,7 @@
   "adjustments_per_kwh": [
     {
       "id": "qta",
-      "name_en": "Quarterly Tariff Adjustment (Sept–Nov 2026)",
+      "name_en": "Quarterly Tariff Adjustment (Sept-Nov 2026)",
       "name_ur": "سہ ماہی ٹیرف ایڈجسٹمنٹ",
       "rate": 0.52,
       "exempt_consumer_types": ["lifeline"],
@@ -102,7 +102,7 @@
     {
       "id": "fpa",
       "name_en": "FPA / Fuel Charges Adjustment (June 2026 FCA, latest documented)",
-      "name_ur": "ایف پی اے — ایندھن لاگت ایڈجسٹمنٹ",
+      "name_ur": "ایف پی اے (ایندھن لاگت ایڈجسٹمنٹ)",
       "rate": 0.7503,
       "user_override": true,
       "exempt_consumer_types": ["lifeline"],

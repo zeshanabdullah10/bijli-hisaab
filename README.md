@@ -102,6 +102,12 @@ Current LESCO tariff file (`data/tariffs/lesco/2026-10.json`) cites:
 [NEPRA](https://nepra.org.pk), plus QTA/FCA determinations as reported by
 Business Recorder. The authoritative source is always the NEPRA notification.
 
+## Credits
+
+- UI icons: [Tabler Icons](https://tabler.io/icons) (MIT), vendored as an inline SVG sprite (`tools/fetch-icons.mjs` rebuilds it)
+- Urdu display type: Noto Nastaliq Urdu (OFL), self-hosted arabic subset in `fonts/`
+- Tariff data: see the sources cited inside `data/tariffs/`
+
 ## License
 
 MIT — see [LICENSE](LICENSE). Rates data is public tariff information.

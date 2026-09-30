@@ -13,17 +13,19 @@ const state = {
   onATL: localStorage.getItem('bh_atl') !== '0',
   actual: localStorage.getItem('bh_actual') || '',
   budget: Number(localStorage.getItem('bh_budget')) || 20000,
+  theme: localStorage.getItem('bh_theme') || null, // 'light' | 'dark' | null = system
 };
 
 let tariff = null;
 let disco = null;
 let t = makeT(state.lang);
+let lastTotal = null;
 
 function persist() {
   for (const [k, key] of [
     ['lang', 'bh_lang'], ['units', 'bh_units'], ['consumerType', 'bh_type'],
     ['loadKw', 'bh_load'], ['fpa', 'bh_fpa'], ['onATL', 'bh_atl'],
-    ['actual', 'bh_actual'], ['budget', 'bh_budget'],
+    ['actual', 'bh_actual'], ['budget', 'bh_budget'], ['theme', 'bh_theme'],
   ]) localStorage.setItem(key, state[k]);
 }
 
@@ -37,6 +39,24 @@ function ctx() {
     onATL: state.onATL,
     phase: 'single',
   };
+}
+
+// ---------------------------------------------------------------- theme
+
+function applyTheme() {
+  if (state.theme === 'light' || state.theme === 'dark') {
+    document.documentElement.dataset.theme = state.theme;
+  } else {
+    delete document.documentElement.dataset.theme;
+  }
+}
+
+function toggleTheme() {
+  const dark = state.theme === 'dark'
+    || (state.theme === null && matchMedia('(prefers-color-scheme: dark)').matches);
+  state.theme = dark ? 'light' : 'dark';
+  persist();
+  applyTheme();
 }
 
 // ---------------------------------------------------------------- rendering
@@ -54,48 +74,94 @@ function applyStaticTexts() {
   document.querySelectorAll('[data-i18n]').forEach((node) => {
     node.textContent = t(node.dataset.i18n);
   });
+  document.querySelectorAll('[data-i18n-aria]').forEach((node) => {
+    node.setAttribute('aria-label', t(node.dataset.i18nAria));
+  });
   el('rates-chip').textContent = t('rates_chip', { date: tariff.effective_date });
   el('disclaimer').textContent = t('disclaimer');
   el('data-updated').textContent = t('data_updated', { date: tariff.verified_on });
+  el('theme-toggle').setAttribute('aria-label', t('theme_toggle'));
   el('helpline-link').textContent = `${t('audit_helpline')}: ${disco.helpline}`;
 }
+
+const CLUSTER_DEFS = () => [
+  { label: t('cluster_energy'), ids: ['energy', 'fixed', 'minimum', 'fc_surcharge', 'qta', 'fpa'] },
+  { label: t('cluster_taxes'), ids: ['electricity_duty', 'gst', 'tv_fee', 'income_tax'] },
+];
 
 function renderResults() {
   const bill = computeBill(ctx());
   const cliff = slabCliffInfo(ctx());
   const cls = tariff.consumer_classes.domestic[state.consumerType];
+  const ur = state.lang === 'ur';
 
-  el('total-value').textContent = `Rs ${fmt(bill.total)}`;
+  // Hero: total + effective rate + meta chips
+  if (lastTotal !== null && lastTotal !== bill.total) {
+    const amount = el('total-value');
+    amount.classList.remove('pulse');
+    void amount.offsetWidth; // restart the animation
+    amount.classList.add('pulse');
+  }
+  lastTotal = bill.total;
+  el('total-value').textContent = fmt(bill.total);
   el('effective-rate').textContent = `${t('effective_rate')}: Rs ${fmt2(bill.effectiveRatePerUnit)} ${t('per_unit')}`;
-
-  // Bill-style breakdown
   const typeNames = { unprotected: t('type_unprotected'), protected: t('type_protected'), lifeline: t('type_lifeline') };
-  el('bill-head-line').textContent = `${typeNames[state.consumerType]} · ${fmt(state.units)} ${state.lang === 'ur' ? 'یونٹس' : 'units'} · ${cliff.slabLabel}`;
-  el('bill-items').innerHTML = bill.items.map((item) => `
-    <details class="bill-line kind-${item.kind}" data-id="${item.id}">
-      <summary>
-        <span class="line-name ${state.lang === 'ur' ? 'ur' : ''}">${state.lang === 'ur' ? item.name_ur : item.name_en}</span>
-        <span class="line-amt">Rs ${fmt(item.amount)}</span>
-      </summary>
-      <div class="line-detail">
-        <p class="formula">${item.formula}</p>
-        ${item.source ? `<a href="${item.source}" target="_blank" rel="noopener">${t('source')} ↗</a>` : ''}
-      </div>
-    </details>`).join('');
+  el('bill-head-line').innerHTML = `
+    <span class="chip">${typeNames[state.consumerType]}</span>
+    <span class="chip tnum">${fmt(state.units)} ${ur ? 'یونٹس' : 'units'}</span>
+    <span class="chip tnum">${cliff.slabLabel}</span>`;
+
+  // Bill breakdown, clustered like a statement
+  const clusters = CLUSTER_DEFS().map((cd) => {
+    const items = bill.items.filter((i) => cd.ids.includes(i.id));
+    if (!items.length) return '';
+    const subtotal = items.reduce((a, i) => a + i.amount, 0);
+    return `<div class="cluster">
+      <p class="cluster-label${ur ? ' ur' : ''}">${cd.label}</p>
+      ${items.map((item) => `
+        <details class="bill-line kind-${item.kind}" data-id="${item.id}">
+          <summary>
+            <span class="line-name${ur ? ' ur' : ''}">${ur ? item.name_ur : item.name_en}</span>
+            <span class="line-amt tnum">Rs ${fmt(item.amount)}</span>
+            <svg class="line-chev" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+          </summary>
+          <div class="line-detail">
+            <p class="formula">${item.formula}</p>
+            ${item.source ? `<a href="${item.source}" target="_blank" rel="noopener">${t('source')} <svg aria-hidden="true"><use href="#i-external-link"/></svg></a>` : ''}
+          </div>
+        </details>`).join('')}
+      <div class="cluster-sub"><span${ur ? ' class="ur"' : ''}>${t('cluster_subtotal')}</span><span class="tnum">Rs ${fmt(subtotal)}</span></div>
+    </div>`;
+  }).join('');
+
+  const known = CLUSTER_DEFS().flatMap((c) => c.ids);
+  const leftover = bill.items.filter((i) => !known.includes(i.id));
+  const extra = leftover.length
+    ? `<div class="cluster">${leftover.map((item) => `
+        <details class="bill-line kind-${item.kind}" data-id="${item.id}">
+          <summary>
+            <span class="line-name${ur ? ' ur' : ''}">${ur ? item.name_ur : item.name_en}</span>
+            <span class="line-amt tnum">Rs ${fmt(item.amount)}</span>
+            <svg class="line-chev" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+          </summary>
+          <div class="line-detail"><p class="formula">${item.formula}</p></div>
+        </details>`).join('')}</div>`
+    : '';
+
+  el('bill-items').innerHTML = clusters + extra;
   el('bill-total-row').innerHTML = `
-    <span>${t('total_label')}</span>
-    <span class="line-amt total-amt">Rs ${fmt(bill.total)}</span>`;
+    <span class="${ur ? 'ur' : ''}">${t('total_label')}</span>
+    <span class="line-amt tnum">Rs ${fmt(bill.total)}</span>`;
 
-  // Eligibility note under the type selector
-  const elig = cls.eligibility_en || cls.mode_note_en;
-  el('type-note').textContent = state.lang === 'ur'
-    ? (cls.eligibility_ur || cls.mode_note_ur || '') : (elig || '');
+  // Eligibility note under the segmented control
+  el('type-note').textContent = ur
+    ? (cls.eligibility_ur || cls.mode_note_ur || '') : (cls.eligibility_en || cls.mode_note_en || '');
 
-  // Cliff card
+  // Cliff tiles
   el('cliff-slab').textContent = cliff.slabLabel;
   if (cliff.unitsRemaining !== null) {
-    el('cliff-remaining').textContent = `${fmt(cliff.unitsRemaining)}`;
-    el('cliff-crossing').textContent = `+ Rs ${fmt(cliff.crossingCost)}`;
+    el('cliff-remaining').textContent = fmt(cliff.unitsRemaining);
+    el('cliff-crossing').textContent = `+${fmt(cliff.crossingCost)}`;
     el('cliff-next-unit').textContent = `Rs ${fmt2(cliff.marginalCostNextUnit)}`;
     el('cliff-top-note').hidden = true;
     el('cliff-grid').hidden = false;
@@ -104,7 +170,7 @@ function renderResults() {
     el('cliff-top-note').hidden = false;
   }
   el('cliff-note').textContent = cliff.billingMode === 'telescopic'
-    ? (state.lang === 'ur' ? 'محفوظ صارفین کا بل سلیب بہ سلیب بڑھتا ہے — اوپر والی کھائی آپ پر لاگو نہیں۔' : 'Protected billing is telescopic — each slab only prices its own units, so the cliff above does not apply to you.')
+    ? (ur ? 'محفوظ صارفین کا بل سلیب بہ سلیب بڑھتا ہے، اوپر والی کھائی آپ پر لاگو نہیں۔' : 'Protected billing is telescopic: each slab only prices its own units, so the cliff does not apply to you.')
     : t('cliff_note');
 
   // Budget planner
@@ -118,22 +184,23 @@ function renderResults() {
   if (state.actual !== '' && !Number.isNaN(Number(state.actual))) {
     const actual = Number(state.actual);
     const diff = actual - bill.total;
-    const pct = bill.total > 0 ? (diff / bill.total) * 100 : 0;
-    const absPct = Math.abs(pct);
+    const absPct = bill.total > 0 ? Math.abs(diff / bill.total) * 100 : 0;
     auditBox.hidden = false;
     auditBox.innerHTML = `
-      <div class="audit-row"><span>${t('audit_computed')}</span><b>Rs ${fmt(bill.total)}</b></div>
-      <div class="audit-row"><span>${t('audit_actual')}</span><b>Rs ${fmt(actual)}</b></div>
-      <div class="audit-row diff"><span>${t('audit_diff')}</span><b class="${diff >= 0 ? 'neg' : 'pos'}">${diff >= 0 ? '+' : '−'} Rs ${fmt(Math.abs(diff))} (${absPct.toFixed(1)}%)</b></div>
-      ${absPct <= 3 ? `<p class="audit-close">✓ ${t('audit_close')}</p>` : `
-        <p class="audit-explain-title">${t('audit_explain_title')}</p>
-        <ul class="audit-list"><li>${t('audit_e1')}</li><li>${t('audit_e2')}</li><li>${t('audit_e3')}</li></ul>`}`;
+      <div class="audit-row"><span>${t('audit_computed')}</span><b class="tnum">Rs ${fmt(bill.total)}</b></div>
+      <div class="audit-row"><span>${t('audit_actual')}</span><b class="tnum">Rs ${fmt(actual)}</b></div>
+      <div class="audit-row diff"><span>${t('audit_diff')}</span><b class="tnum ${diff >= 0 ? 'neg' : 'pos'}">${diff >= 0 ? '+' : '−'} Rs ${fmt(Math.abs(diff))} (${absPct.toFixed(1)}%)</b></div>
+      ${absPct <= 3
+        ? `<p class="audit-close"><svg aria-hidden="true"><use href="#i-check"/></svg>${t('audit_close')}</p>`
+        : `<p class="audit-explain-title">${t('audit_explain_title')}</p>
+           <ul class="audit-list"><li>${t('audit_e1')}</li><li>${t('audit_e2')}</li><li>${t('audit_e3')}</li></ul>`}`;
   } else {
     auditBox.hidden = true;
   }
 
-  const warn = el('warnings');
-  warn.innerHTML = bill.warnings.map((w) => `<p class="warn">${w}</p>`).join('');
+  // Warnings as alert cards
+  el('warnings').innerHTML = bill.warnings.map((w) => `
+    <div class="warn-item"><svg aria-hidden="true"><use href="#i-alert-triangle"/></svg><span>${w}</span></div>`).join('');
 }
 
 function renderChart() {
@@ -143,7 +210,26 @@ function renderChart() {
     consumerType: state.consumerType,
     units: state.units,
     t,
+    onDrag: (units) => setUnits(units, { fromChart: true }),
   });
+}
+
+// ---------------------------------------------------------------- units state
+
+function setUnits(units, { fromChart = false } = {}) {
+  state.units = Math.max(0, Math.min(2000, Math.round(units)));
+  el('units-slider').value = Math.min(state.units, 1000);
+  el('units-input').value = state.units;
+  setSliderFill();
+  persist();
+  renderResults();
+  renderChart();
+}
+
+function setSliderFill() {
+  const slider = el('units-slider');
+  const pct = Math.min(100, (state.units / Number(slider.max)) * 100);
+  slider.style.setProperty('--p', `${pct}%`);
 }
 
 // ---------------------------------------------------------------- share card
@@ -158,8 +244,8 @@ function shareText() {
     type: typeNames[state.consumerType],
     slab: cliff.slabLabel,
     rate: fmt2(bill.effectiveRatePerUnit),
-    next: cliff.nextBoundary ?? '—',
-    cross: cliff.crossingCost !== null ? fmt(cliff.crossingCost) : '—',
+    next: cliff.nextBoundary ?? '-',
+    cross: cliff.crossingCost !== null ? fmt(cliff.crossingCost) : '-',
   });
 }
 
@@ -175,8 +261,10 @@ async function copyShare() {
     document.execCommand('copy');
     ta.remove();
   }
-  btn.textContent = `✓ ${t('copied')}`;
-  setTimeout(() => { btn.textContent = t('share_btn'); }, 1600);
+  const span = btn.querySelector('span');
+  btn.classList.add('copied');
+  span.textContent = `✓ ${t('copied')}`;
+  setTimeout(() => { span.textContent = t('share_btn'); }, 1600);
 }
 
 // ---------------------------------------------------------------- wiring
@@ -184,18 +272,21 @@ async function copyShare() {
 function wire() {
   el('units-input').addEventListener('input', (e) => {
     state.units = Math.max(0, Math.min(2000, Number(e.target.value) || 0));
-    el('units-slider').value = state.units;
+    el('units-slider').value = Math.min(state.units, 1000);
+    setSliderFill();
     persist(); renderResults(); renderChart();
   });
-  el('units-slider').addEventListener('input', (e) => {
-    state.units = Number(e.target.value);
-    el('units-input').value = state.units;
-    persist(); renderResults(); renderChart();
-  });
+  el('units-slider').addEventListener('input', (e) => setUnits(Number(e.target.value)));
+  el('units-minus').addEventListener('click', () => setUnits(state.units - 10));
+  el('units-plus').addEventListener('click', () => setUnits(state.units + 10));
+
+  const seg = el('ctype-seg');
   document.querySelectorAll('input[name=ctype]').forEach((r) => r.addEventListener('change', (e) => {
     state.consumerType = e.target.value;
+    seg.style.setProperty('--active', [...document.querySelectorAll('input[name=ctype]')].indexOf(e.target));
     persist(); renderResults(); renderChart();
   }));
+
   el('load-input').addEventListener('input', (e) => {
     state.loadKw = Math.max(0, Number(e.target.value) || 0);
     persist(); renderResults(); renderChart();
@@ -220,6 +311,7 @@ function wire() {
     state.lang = state.lang === 'en' ? 'ur' : 'en';
     persist(); render();
   });
+  el('theme-toggle').addEventListener('click', toggleTheme);
   el('share-btn').addEventListener('click', copyShare);
 }
 
@@ -234,19 +326,25 @@ async function boot() {
   tariff = await fetch(`data/tariffs/lesco/${index.default}.json`).then((r) => r.json());
 
   el('units-input').value = state.units;
-  el('units-slider').value = state.units;
-  document.querySelector(`input[name=ctype][value=${state.consumerType}]`).checked = true;
+  el('units-slider').value = Math.min(state.units, 1000);
+  setSliderFill();
+  const checked = document.querySelector(`input[name=ctype][value=${state.consumerType}]`);
+  if (checked) {
+    checked.checked = true;
+    el('ctype-seg').style.setProperty('--active', [...document.querySelectorAll('input[name=ctype]')].indexOf(checked));
+  }
   el('load-input').value = state.loadKw;
   el('fpa-input').value = state.fpa;
   el('atl-input').checked = state.onATL;
   el('actual-input').value = state.actual;
   el('budget-input').value = state.budget;
 
-  // Footer source list from the tariff file — provenance stays visible.
+  // Footer source list from the tariff file, provenance stays visible.
   el('source-list').innerHTML = tariff.sources
     .map((s) => `<li><a href="${s.url}" target="_blank" rel="noopener">${s.title}</a></li>`)
     .join('');
 
+  applyTheme();
   wire();
   render();
 
@@ -256,6 +354,6 @@ async function boot() {
 }
 
 boot().catch((err) => {
-  document.getElementById('app').innerHTML =
-    `<div class="boot-error"><p>Failed to load tariff data (${err.message}). Serve over HTTP — see README.</p></div>`;
+  document.body.innerHTML =
+    `<div class="boot-error"><p>Failed to load tariff data (${err.message}). Serve over HTTP, see README.</p></div>`;
 });

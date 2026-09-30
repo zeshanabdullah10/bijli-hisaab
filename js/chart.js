@@ -1,19 +1,27 @@
-// Hand-rolled SVG chart of the slab cliff. Under landing-slab billing the
-// total is piecewise-linear in units (rate × units + per-kW fixed + %-taxes),
-// so a polyline through the slab boundaries is exact — no plotting library
-// needed, and the whole app stays dependency-free.
+// Slab-cliff chart, Apple-Stocks style: one accent line with a soft area
+// gradient, hairline slab boundaries, a floating "you are here" pill, and
+// drag-to-explore. Under landing-slab billing the total is piecewise-linear
+// in units, so a polyline through the slab boundaries is exact. All colors
+// come from CSS custom properties, so the chart follows light/dark for free.
 
 import { computeBill } from './tariff.js';
 import { fmt } from './i18n.js';
 
-const SLAB_COLORS = ['#2e7d32', '#558b2f', '#827717', '#b08600', '#c26a00', '#c9551f', '#bf4117', '#b3261e'];
-
-export function renderCliffChart({ host, ctx, consumerType, units, t }) {
+export function renderCliffChart({ host, ctx, consumerType, units, t, onDrag }) {
   const cls = ctx.tariff.consumer_classes.domestic[consumerType];
   const MAX_U = Math.max(800, units + 100);
   const billAt = (u) => computeBill({ ...ctx, units: u, consumerType }).total;
 
-  // Sample exactly at boundaries and midpoints; within a slab the curve is linear.
+  const W = 640;
+  const H = 280;
+  const M = { top: 30, right: 14, bottom: 30, left: 50 };
+  const iw = W - M.left - M.right;
+  const ih = H - M.top - M.bottom;
+  const maxY = billAt(MAX_U);
+  const px = (u) => M.left + (u / MAX_U) * iw;
+  const py = (rs) => M.top + ih - (rs / maxY) * ih;
+
+  // Sample at slab boundaries and midpoints; linear inside each slab.
   const bounds = cls.slabs.map((s) => s.up_to).filter((u) => u !== null && u <= MAX_U);
   const xs = [0, ...bounds, MAX_U];
   for (let i = 0; i < bounds.length; i++) {
@@ -23,54 +31,88 @@ export function renderCliffChart({ host, ctx, consumerType, units, t }) {
   xs.sort((a, b) => a - b);
   if (!xs.includes(units)) xs.push(units);
 
-  const W = 640;
-  const H = 300;
-  const M = { top: 18, right: 16, bottom: 34, left: 58 };
-  const iw = W - M.left - M.right;
-  const ih = H - M.top - M.bottom;
-  const maxY = billAt(MAX_U);
-  const px = (u) => M.left + (u / MAX_U) * iw;
-  const py = (rs) => M.top + ih - (rs / maxY) * ih;
+  const pts = xs.map((u) => [px(u), py(billAt(u))]);
+  const linePath = 'M' + pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' L');
+  const areaPath = `${linePath} L${px(MAX_U).toFixed(1)},${M.top + ih} L${M.left},${M.top + ih} Z`;
 
-  // One filled segment per slab so the colors encode where the money goes.
-  const segs = [];
-  let prevU = 0;
-  let prevY = py(billAt(0));
-  cls.slabs.forEach((s, i) => {
-    const u = s.up_to === null ? MAX_U : Math.min(s.up_to, MAX_U);
-    if (u <= prevU) return;
-    const y = py(billAt(u));
-    const up_to = s.up_to === null ? MAX_U : s.up_to;
-    segs.push(`<polygon points="${px(prevU)},${M.top + ih} ${px(prevU)},${prevY} ${px(u)},${y} ${px(u)},${M.top + ih}" fill="${SLAB_COLORS[i % SLAB_COLORS.length]}" opacity="0.14"/>`);
-    segs.push(`<line x1="${px(prevU)}" y1="${prevY}" x2="${px(u)}" y2="${y}" stroke="${SLAB_COLORS[i % SLAB_COLORS.length]}" stroke-width="2.5" stroke-linecap="round"/>`);
-    if (up_to !== null && up_to <= MAX_U) {
-      segs.push(`<line x1="${px(u)}" y1="${M.top}" x2="${px(u)}" y2="${M.top + ih}" stroke="#b3261e" stroke-dasharray="4 4" opacity="0.55"/>`);
-      segs.push(`<text x="${px(u)}" y="${H - 12}" text-anchor="middle" font-size="11" fill="#b3261e">${up_to}</text>`);
-    }
-    prevU = u;
-    prevY = y;
-  });
+  const grid = [0.25, 0.5, 0.75, 1].map((f) => {
+    const v = Math.round((maxY * f) / 5000) * 5000;
+    return `<line x1="${M.left}" y1="${py(v)}" x2="${W - M.right}" y2="${py(v)}" stroke="var(--hairline)" stroke-width="1"/>
+            <text x="${M.left - 7}" y="${py(v) + 3.5}" text-anchor="end" font-size="10" fill="var(--text-3)">${fmt(v / 1000)}k</text>`;
+  }).join('');
 
-  // Gridlines + y labels
-  const yTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => Math.round((maxY * f) / 5000) * 5000);
-  const grid = yTicks.map((v) =>
-    `<line x1="${M.left}" y1="${py(v)}" x2="${W - M.right}" y2="${py(v)}" stroke="#000" opacity="0.07"/>
-     <text x="${M.left - 6}" y="${py(v) + 4}" text-anchor="end" font-size="10" fill="#667">${fmt(v / 1000)}k</text>`,
-  ).join('');
+  const boundaries = bounds.map((b) => `
+    <line x1="${px(b)}" y1="${M.top - 4}" x2="${px(b)}" y2="${M.top + ih}" stroke="var(--danger)" stroke-width="1" stroke-dasharray="3 5" opacity="0.4"/>
+    <text x="${px(b)}" y="${H - 10}" text-anchor="middle" font-size="10" font-weight="600" fill="var(--text-3)">${b}</text>`).join('');
 
-  // "You are here" marker
   const yHere = py(billAt(units));
+  const xHere = px(units);
+  const flipLabel = xHere > W - 110;
   const marker = `
-    <line x1="${M.left}" y1="${yHere}" x2="${px(units)}" y2="${yHere}" stroke="#0b5c3f" stroke-dasharray="3 3" opacity="0.7"/>
-    <circle cx="${px(units)}" cy="${yHere}" r="5" fill="#0b5c3f" stroke="#fff" stroke-width="2"/>
-    <text x="${px(units)}" y="${yHere - 10}" text-anchor="middle" font-size="11" font-weight="700" fill="#0b5c3f">Rs ${fmt(billAt(units))}</text>`;
+    <line x1="${xHere}" y1="${yHere}" x2="${xHere}" y2="${M.top + ih}" stroke="var(--chart-line)" stroke-width="1" opacity="0.35"/>
+    <circle cx="${xHere}" cy="${yHere}" r="9" fill="var(--chart-line)" opacity="0.18"/>
+    <circle cx="${xHere}" cy="${yHere}" r="5" fill="var(--chart-line)" stroke="var(--surface)" stroke-width="2.5"/>
+    <g transform="translate(${flipLabel ? xHere - 14 : xHere + 14}, ${Math.max(M.top + 8, yHere - 14)})">
+      <rect x="${flipLabel ? -66 : 0}" y="-13" width="66" height="19" rx="9.5" fill="var(--text)" opacity="0.88"/>
+      <text x="${flipLabel ? -33 : 33}" y="0.5" text-anchor="middle" dominant-baseline="middle" font-size="10.5" font-weight="700" fill="var(--surface)">Rs ${fmt(billAt(units))}</text>
+    </g>`;
 
   host.innerHTML = `
-    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${t('cliff_title')}" style="width:100%;height:auto;display:block;direction:ltr">
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${t('cliff_title')}, ${units} units">
+      <defs>
+        <linearGradient id="bh-area" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--chart-fill-a)"/>
+          <stop offset="100%" stop-color="var(--chart-fill-b)"/>
+        </linearGradient>
+      </defs>
       ${grid}
-      ${segs.join('')}
-      <line x1="${M.left}" y1="${M.top + ih}" x2="${W - M.right}" y2="${M.top + ih}" stroke="#334" stroke-width="1"/>
-      <text x="${W - M.right}" y="${H - 12}" text-anchor="end" font-size="11" fill="#667">${t('units_label').replace(/ \(.*\)/, '')} →</text>
+      <path d="${areaPath}" fill="url(#bh-area)"/>
+      <path d="${linePath}" fill="none" stroke="var(--chart-line)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      ${boundaries}
+      <line x1="${M.left}" y1="${M.top + ih}" x2="${W - M.right}" y2="${M.top + ih}" stroke="var(--hairline)" stroke-width="1.5"/>
       ${marker}
     </svg>`;
+
+  if (onDrag) wireDrag(host, onDrag, MAX_U);
+}
+
+// Listeners live on the persistent host, never on the SVG: every re-render
+// replaces the SVG node, which would orphan the pointer mid-drag and leave a
+// stale handler reading a detached element's zero rect.
+function wireDrag(host, onDrag, MAX_U) {
+  if (host._dragAbort) host._dragAbort.abort();
+  const ac = new AbortController();
+  host._dragAbort = ac;
+  const opts = { signal: ac.signal };
+  const PLOT_L = 50;        // M.left in viewBox units
+  const PLOT_R = 640 - 14;  // W - M.right
+
+  const unitsFromEvent = (e) => {
+    const svg = host.querySelector('svg');
+    if (!svg) return null;
+    const r = svg.getBoundingClientRect();
+    if (r.width === 0) return null;
+    const x = ((e.clientX - r.left) / r.width) * 640;
+    const u = ((x - PLOT_L) / (PLOT_R - PLOT_L)) * MAX_U;
+    return Math.round(Math.max(0, Math.min(MAX_U, u)));
+  };
+
+  const move = (e) => {
+    if (!host._dragging) return;
+    const u = unitsFromEvent(e);
+    if (u === null) return;
+    e.preventDefault();
+    onDrag(u);
+  };
+  const down = (e) => {
+    host._dragging = true;
+    try { host.setPointerCapture(e.pointerId); } catch { /* synthetic events */ }
+    move(e);
+  };
+  const up = () => { host._dragging = false; };
+
+  host.addEventListener('pointerdown', down, opts);
+  host.addEventListener('pointermove', move, opts);
+  host.addEventListener('pointerup', up, opts);
+  host.addEventListener('pointercancel', up, opts);
 }

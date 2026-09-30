@@ -20,7 +20,7 @@ export function slabIndex(slabs, units) {
 
 export function slabLabel(slab, prevUpTo) {
   const from = prevUpTo === null || prevUpTo === undefined ? 1 : prevUpTo + 1;
-  return slab.up_to === null ? `${from}+` : `${from}–${slab.up_to}`;
+  return slab.up_to === null ? `${from}+` : `${from}-${slab.up_to}`;
 }
 
 function energyCharge(cls, units) {
@@ -53,7 +53,7 @@ function energyCharge(cls, units) {
   // landing_slab: every unit billed at the rate of the slab the total lands in.
   return {
     amount: round2(units * slab.rate),
-    formula: `${units} units × Rs ${slab.rate.toFixed(2)} (${label} slab — all units at this rate)`,
+    formula: `${units} units × Rs ${slab.rate.toFixed(2)} (${label} slab, all units at this rate)`,
     slabLabel: label,
   };
 }
@@ -71,7 +71,7 @@ export function effectiveConsumerType(tariff, consumerType, units, warnings = []
   if (cap !== null && units > cap) {
     warnings.push(
       `You entered ${units} units as a ${consumerType} consumer, but the ${consumerType} tables only apply up to ${cap} units. ` +
-      `This month is billed as UNPROTECTED — the whole month reprices, and ${consumerType === 'protected' ? 'protection is lost for the next 6 months' : 'lifeline status is lost'}.`,
+      `This month is billed as UNPROTECTED: the whole month reprices, and ${consumerType === 'protected' ? 'protection is lost for the next 6 months' : 'lifeline status is lost'}.`,
     );
     return 'unprotected';
   }
@@ -212,7 +212,7 @@ export function computeBill(p) {
     });
   } else if (!onATL) {
     warnings.push(
-      `Bill is below the Rs ${it.threshold.toLocaleString('en-PK')} income-tax threshold for non-filers — no income tax applies.`,
+      `Bill is below the Rs ${it.threshold.toLocaleString('en-PK')} income-tax threshold for non-filers, so no income tax applies.`,
     );
   }
 
