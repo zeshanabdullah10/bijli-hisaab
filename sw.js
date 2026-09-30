@@ -2,7 +2,7 @@
 // load-shedding. App shell: cache-first; JSON data: stale-while-revalidate so
 // fresh tariff rates arrive in the background without blocking.
 
-const VERSION = 'bh-v0.2.0';
+const VERSION = 'bh-v0.3.0';
 const SHELL = [
   './',
   './index.html',
@@ -15,8 +15,8 @@ const SHELL = [
   './icon.svg',
   './manifest.webmanifest',
   './data/discos.json',
-  './data/tariffs/lesco/index.json',
-  './data/tariffs/lesco/2026-10.json',
+  './data/tariffs/exwapda/index.json',
+  './data/tariffs/exwapda/2026-10.json',
 ];
 
 self.addEventListener('install', (e) => {

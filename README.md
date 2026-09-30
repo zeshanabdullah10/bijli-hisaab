@@ -60,8 +60,8 @@ shows "rates in force since …" everywhere.
 
 To update:
 
-1. Edit `data/tariffs/lesco/<period>.json` (or add a new period file and bump
-   `default` in `data/tariffs/lesco/index.json`).
+1. Edit `data/tariffs/exwapda/<period>.json` (or add a new period file and bump
+   `default` in `data/tariffs/exwapda/index.json`).
 2. Set `effective_date`, `verified_on`, and add a `sources` entry linking the
    NEPRA notification / SRO / credible news report.
 3. Run `npm test` — the schema test rejects uncited data.
@@ -73,29 +73,49 @@ the DISCO picker in `index.html`. The engine is DISCO-agnostic.
 
 ## What is modelled (and what is not)
 
-Modelled: domestic single-phase — unprotected / protected / lifeline slabs,
-per-kW fixed charges, financing-cost surcharge, QTA, FPA (default + your bill's
-exact rate), provincial electricity duty, GST, TV licence fee, income tax for
-non-filers above Rs 25,000, minimum charge, the slab cliff, budget planner,
-paper-bill audit.
+Modelled: domestic single-phase for all nine ex-WAPDA DISCOs (LESCO, FESCO,
+GEPCO, MEPCO, IESCO, PESCO, HESCO, SEPCO, QESCO) - unprotected / protected /
+lifeline slabs, per-kW fixed charges, financing-cost surcharge, QTA, FPA
+(default + your bill's exact rate), provincial electricity duty, GST, TV
+licence fee, income tax for non-filers above Rs 25,000, minimum charge, the
+slab cliff, budget planner, paper-bill audit, and rooftop solar in both
+connection regimes:
+
+- **Net metering** (grandfathered agreements): exports offset imports 1:1
+  before slab billing; excess export rolls forward as a unit credit.
+- **Net billing** (Prosumer Regulations 2026, new connections): imports are
+  billed in full at slab rates; exports are credited at the buyback price
+  (default Rs 10/unit, reported range Rs 8.13-11 - enter your agreement's rate).
+  The Solar card shows with/without-solar bills, monthly saving and payback.
 
 **Not** modelled: arrears, meter rent, municipal taxes (MUCT etc.), estimated
-readings, three-phase/TOU meters, commercial & agricultural tariffs, net
-metering. A computed total within a few percent of the paper bill is the
-expected accuracy. The app says so on every screen — please keep it that way.
+readings, three-phase/TOU meters, commercial & agricultural tariffs, K-Electric
+(different tariff structure - welcome as a contribution). Provincial
+electricity duty is verified at 1.5% for Punjab; other regions are assumed
+1.5% pending verified PRs. A computed total within a few percent of the paper
+bill is the expected accuracy. The app says so on every screen - please keep
+it that way.
+
+## Data layout
+
+Tariff rates are uniform across ex-WAPDA DISCOs, so they live in ONE shared
+set per period: `data/tariffs/exwapda/<period>.json`. Per-DISCO differences
+(helpline, website, provincial electricity duty) live in `data/discos.json`.
+A DISCO that ever gets its own rates again just points at its own tariff set.
 
 ## Roadmap
 
-- [ ] More DISCOs (FESCO, GEPCO, IESCO, MEPCO…) — data PRs welcome
+- [x] All ex-WAPDA DISCOs
+- [x] Solar: net metering + net billing (Prosumer Regulations 2026)
 - [ ] K-Electric (different tariff structure)
-- [ ] Protected-status streak tracker (≤200 units × 6 months)
-- [ ] Appliance estimator ("your AC at 8h/day ≈ N units/month")
-- [ ] Monthly FPA auto-reminder via GitHub Action → PR
-- [ ] GasHisaab — same engine, SNGPL/SSGC winter bills
+- [ ] Protected-status streak tracker (200 units x 6 months)
+- [ ] Appliance estimator ("your AC at 8h/day = N units/month")
+- [ ] Monthly FPA auto-reminder via GitHub Action -> PR
+- [ ] GasHisaab - same engine, SNGPL/SSGC winter bills
 
 ## Sources
 
-Current LESCO tariff file (`data/tariffs/lesco/2026-10.json`) cites:
+Current tariff file (`data/tariffs/exwapda/2026-10.json`) cites:
 [BijliBills — NEPRA Tariff 2026 Explained (SRO 279(I)/2026)](https://bijlibills.com/nepra-tariff-2026-explained/),
 [BillsCheckOnline — LESCO unit price](https://billscheckonline.pk),
 [MEPCO bill tax guide](https://mymepcobill.com),

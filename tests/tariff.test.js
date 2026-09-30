@@ -7,7 +7,7 @@ import { dirname, join } from 'node:path';
 import { computeBill, slabCliffInfo, maxUnitsForBudget } from '../js/tariff.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const tariff = JSON.parse(readFileSync(join(here, '../data/tariffs/lesco/2026-10.json'), 'utf8'));
+const tariff = JSON.parse(readFileSync(join(here, '../data/tariffs/exwapda/2026-10.json'), 'utf8'));
 const discos = JSON.parse(readFileSync(join(here, '../data/discos.json'), 'utf8'));
 const disco = discos.discos.find((d) => d.id === 'lesco');
 
@@ -124,6 +124,65 @@ test('crossing the protection cap reprices the whole month as unprotected', () =
   const lf = computeBill({ ...ctx, units: 150, consumerType: 'lifeline' });
   assert.equal(lf.items.find((i) => i.id === 'energy').amount, round(150 * 28.91));
   assert.ok(lf.warnings.length >= 1);
+});
+
+test('all nine ex-WAPDA DISCOs reference a shared tariff set with duty metadata', () => {
+  const ids = discos.discos.map((d) => d.id);
+  assert.equal(ids.length, 9);
+  for (const d of discos.discos) {
+    assert.equal(d.tariff_set, 'exwapda');
+    assert.equal(typeof d.electricity_duty.rate_pct, 'number');
+    assert.equal(typeof d.electricity_duty.verified, 'boolean');
+    assert.ok(d.helpline && d.website);
+  }
+  assert.equal(discos.discos.find((d) => d.id === 'fesco').electricity_duty.verified, true);
+  assert.equal(discos.discos.find((d) => d.id === 'pesco').electricity_duty.verified, false);
+});
+
+test('solar net metering: exports offset imports 1:1 before slabs', () => {
+  const plain = computeBill({ ...ctx, units: 300, consumerType: 'unprotected' });
+  const sol = computeBill({
+    ...ctx, units: 0, consumerType: 'unprotected',
+    solar: { mode: 'net_metering', importedUnits: 300, exportedUnits: 120 },
+  });
+  // 300 imports - 120 exports = 180 billed -> lands in 101-200 slab
+  assert.equal(sol.items.find((i) => i.id === 'energy').amount, round(180 * 28.91));
+  assert.ok(sol.total < plain.total - 3000, 'netting 120 units must cut the bill sharply');
+  assert.equal(sol.effectiveRatePerUnit, round(sol.total / 300));
+});
+
+test('solar net metering: excess export rolls forward with a warning, bill floors near standing charges', () => {
+  const sol = computeBill({
+    ...ctx, units: 0, consumerType: 'unprotected',
+    solar: { mode: 'net_metering', importedUnits: 50, exportedUnits: 200 },
+  });
+  assert.equal(sol.items.find((i) => i.id === 'energy').amount, 0);
+  assert.ok(sol.warnings.some((w) => /rolls forward/.test(w)));
+});
+
+test('solar net billing: imports billed in full at slabs, exports credited at buyback', () => {
+  const sol = computeBill({
+    ...ctx, units: 0, consumerType: 'unprotected',
+    solar: { mode: 'net_billing', importedUnits: 300, exportedUnits: 120, buybackPerUnit: 10 },
+  });
+  // Imports keep the full 300-unit slab treatment (no netting relief).
+  assert.equal(sol.items.find((i) => i.id === 'energy').amount, round(300 * 33.10));
+  const credit = sol.items.find((i) => i.id === 'solar_export');
+  assert.equal(credit.amount, -1200);
+  assert.ok(credit.formula.includes('buyback'));
+  // Credit excluded from GST base: GST must equal the no-solar GST.
+  const plain = computeBill({ ...ctx, units: 300, consumerType: 'unprotected' });
+  assert.equal(sol.items.find((i) => i.id === 'gst').amount, plain.items.find((i) => i.id === 'gst').amount);
+  assert.equal(sol.total, round(plain.total - 1200));
+});
+
+test('solar net billing: credit larger than the bill floors the total at zero with a warning', () => {
+  const sol = computeBill({
+    ...ctx, units: 0, consumerType: 'protected',
+    solar: { mode: 'net_billing', importedUnits: 60, exportedUnits: 500, buybackPerUnit: 10 },
+  });
+  assert.equal(sol.total, 0);
+  assert.ok(sol.warnings.some((w) => /carries forward/.test(w)));
 });
 
 test('audit fixture — a fully worked bill stays consistent with its recorded total', () => {

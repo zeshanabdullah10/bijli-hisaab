@@ -254,7 +254,8 @@ svg { display: inline-block; vertical-align: -0.18em; }
       "hero hero"
       "panel bill"
       "panel cliff"
-      "panel tools";
+      "panel tools"
+      "panel solar";
     gap: 18px;
   }
   .hero { grid-area: hero; }
@@ -262,6 +263,7 @@ svg { display: inline-block; vertical-align: -0.18em; }
   .bill { grid-area: bill; }
   .cliff { grid-area: cliff; }
   .tools { grid-area: tools; }
+  .solar-card { grid-area: solar; }
   .rates-strip { text-align: start; padding-top: 18px; }
 }
 
@@ -378,19 +380,21 @@ svg { display: inline-block; vertical-align: -0.18em; }
 /* ---- segmented control ------------------------------------------------------------- */
 
 .seg {
+  --seg-n: 3;
   position: relative;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(var(--seg-n), 1fr);
   background: var(--surface-3);
   border-radius: 12px;
   padding: 3px;
   isolation: isolate;
 }
+.seg.two { --seg-n: 2; }
 .seg-thumb {
   position: absolute;
   top: 3px; bottom: 3px;
-  inset-inline-start: calc(3px + var(--active) * (100% - 6px) / 3);
-  width: calc((100% - 6px) / 3);
+  inset-inline-start: calc(3px + var(--active) * (100% - 6px) / var(--seg-n));
+  width: calc((100% - 6px) / var(--seg-n));
   background: var(--surface);
   border-radius: 9.5px;
   box-shadow: 0 1px 4px rgba(28, 30, 28, 0.14), 0 4px 12px -6px rgba(28, 30, 28, 0.18);
@@ -551,6 +555,27 @@ input[type="range"]::-moz-range-thumb {
 .row-input::placeholder { color: var(--text-3); }
 #fpa-input, #load-input { width: 76px; }
 
+.row-select {
+  width: 150px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-align: end;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.row-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3.5px var(--accent-soft);
+}
+
 .switch { position: relative; display: inline-block; width: 51px; height: 31px; flex: none; }
 .switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
 .switch-track {
@@ -611,6 +636,8 @@ input[type="range"]::-moz-range-thumb {
 .bill-line summary:hover .line-name { color: var(--accent); }
 .line-name { flex: 1; min-width: 0; transition: color 0.2s; }
 .line-amt { font-weight: 600; white-space: nowrap; font-size: 0.94rem; }
+.kind-credit .line-amt { color: var(--accent); }
+.kind-credit .line-name { color: var(--accent); }
 .line-chev {
   width: 18px; height: 18px;
   color: var(--text-3);
@@ -698,6 +725,8 @@ input[type="range"]::-moz-range-thumb {
 .tile span { font-size: 0.72rem; color: var(--text-3); font-weight: 500; }
 .tile b { font-size: 1.06rem; font-weight: 700; letter-spacing: -0.01em; }
 .tile.warn b { color: var(--danger); }
+.tile.good b { color: var(--accent); }
+#solar-panel { margin-top: 18px; }
 .note { font-size: 0.78rem; color: var(--text-3); line-height: 1.5; margin-top: 12px; }
 
 /* ---- tools (budget + audit) ------------------------------------------------------------------ */

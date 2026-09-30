@@ -83,23 +83,44 @@ export function effectiveConsumerType(tariff, consumerType, units, warnings = []
  * @param {object} p
  * @param {object} p.tariff        parsed tariff JSON (see data/tariffs/)
  * @param {object} p.disco         parsed entry from data/discos.json
- * @param {number} p.units         monthly kWh
+ * @param {number} p.units         monthly kWh (grid imports when p.solar is set)
  * @param {string} p.consumerType  'unprotected' | 'protected' | 'lifeline'
  * @param {number} [p.loadKw=5]    sanctioned load in kW (drives fixed charges)
  * @param {number|null} [p.fpaOverride] per-unit FPA from the paper bill, if known
  * @param {boolean} [p.onATL=true] consumer on the Active Taxpayer List (filer)
  * @param {'single'|'three'} [p.phase='single']  meter phase (minimum charge)
+ * @param {object|null} [p.solar]  rooftop solar:
+ *   { mode: 'net_metering'|'net_billing', importedUnits, exportedUnits, buybackPerUnit }
+ *   net_metering: exports offset imports 1:1 before slabs (grandfathered agreements).
+ *   net_billing:  imports billed in full at slab rates, exports credited at the buyback rate.
  * @returns {{items: Array, total: number, totalBeforeIncomeTax: number, effectiveRatePerUnit: number, warnings: string[]}}
  */
 export function computeBill(p) {
   const {
-    tariff, disco, units, consumerType = 'unprotected', loadKw = 5,
-    fpaOverride = null, onATL = true, phase = 'single',
+    tariff, disco, units: unitsIn = 0, consumerType = 'unprotected', loadKw = 5,
+    fpaOverride = null, onATL = true, phase = 'single', solar = null,
   } = p;
+
+  const warnings = [];
+  let units = unitsIn;
+  let importedUnits = unitsIn;
+  if (solar) {
+    importedUnits = solar.importedUnits ?? unitsIn;
+    const exported = solar.exportedUnits || 0;
+    if (solar.mode === 'net_metering') {
+      units = Math.max(0, importedUnits - exported);
+      if (exported > importedUnits) {
+        warnings.push(
+          `You exported ${Math.round(exported - importedUnits)} more units than you imported. Under net metering the difference rolls forward to future bills as a unit credit, not cash.`,
+        );
+      }
+    } else {
+      units = importedUnits;
+    }
+  }
 
   const cls = tariff.consumer_classes.domestic[consumerType];
   if (!cls) throw new Error(`Unknown consumerType: ${consumerType}`);
-  const warnings = [];
   const effType = effectiveConsumerType(tariff, consumerType, units, warnings);
   const effCls = tariff.consumer_classes.domestic[effType];
   const items = [];
@@ -196,6 +217,23 @@ export function computeBill(p) {
     source: src(gst.source),
   });
 
+  // --- 7b. Solar export credit (net billing) -----------------------------------
+  // Exports are bought back at the reference price and credited separately;
+  // they do not enter the GST base.
+  if (solar && solar.mode === 'net_billing') {
+    const exported = solar.exportedUnits || 0;
+    if (exported > 0) {
+      const buyback = solar.buybackPerUnit ?? tariff.solar.modes.net_billing.buyback_per_kwh;
+      items.push({
+        id: 'solar_export', kind: 'credit',
+        name_en: tariff.solar.credit_name_en, name_ur: tariff.solar.credit_name_ur,
+        amount: -round2(exported * buyback),
+        formula: `${Math.round(exported)} units exported × Rs ${buyback.toFixed(2)} buyback (credited against this bill)`,
+        source: src(tariff.solar.source),
+      });
+    }
+  }
+
   const totalBeforeIncomeTax = round2(items.reduce((a, i) => a + i.amount, 0));
 
   // --- 8. Income tax (non-filers above threshold) -------------------------------
@@ -207,7 +245,7 @@ export function computeBill(p) {
       id: 'income_tax', kind: 'tax',
       name_en: 'Income tax (non-filer)', name_ur: 'انکم ٹیکس (نان فائلر)',
       amount: incomeTax,
-      formula: `${it.rate_pct}% × Rs ${totalBeforeIncomeTax.toLocaleString('en-PK')} — applies when the bill reaches Rs ${it.threshold.toLocaleString('en-PK')} and you are not on the ATL`,
+      formula: `${it.rate_pct}% × Rs ${totalBeforeIncomeTax.toLocaleString('en-PK')} (applies when the bill reaches Rs ${it.threshold.toLocaleString('en-PK')} and you are not on the ATL)`,
       source: src(it.source),
     });
   } else if (!onATL) {
@@ -216,12 +254,18 @@ export function computeBill(p) {
     );
   }
 
-  const total = round2(totalBeforeIncomeTax + incomeTax);
+  let total = round2(totalBeforeIncomeTax + incomeTax);
+  if (total < 0) {
+    total = 0;
+    warnings.push(
+      'Your solar export credit exceeds this month\'s entire bill. The surplus carries forward on your account; this estimate shows Rs 0 payable.',
+    );
+  }
   return {
     items,
     total,
     totalBeforeIncomeTax,
-    effectiveRatePerUnit: units > 0 ? round2(total / units) : 0,
+    effectiveRatePerUnit: importedUnits > 0 ? round2(total / importedUnits) : 0,
     warnings,
   };
 }

@@ -1,5 +1,5 @@
 {
-  "_note": "Distribution companies supported by BijliHisaab. Add a DISCO by adding an entry here plus tariff files under data/tariffs/<id>/. Every rate must cite a source.",
+  "_note": "Distribution companies supported by BijliHisaab. Since the uniform national tariff, all ex-WAPDA DISCOs share one tariff set (data/tariffs/exwapda/); what differs per DISCO is provincial electricity duty and contact channels. K-Electric is not yet supported (different tariff structure). Add a DISCO by adding an entry here with its tariff_set.",
   "discos": [
     {
       "id": "lesco",
@@ -7,16 +7,107 @@
       "name_ur": "لیسکو",
       "full_name_en": "Lahore Electric Supply Company",
       "region_en": "Punjab",
-      "region_ur": "پنجاب",
+      "region_ur": "پنجاب (لاہور)",
+      "tariff_set": "exwapda",
       "helpline": "118",
       "website": "https://lesco.gov.pk",
-      "regulator_complaints": "https://nepra.org.pk/complaints.php",
-      "electricity_duty": {
-        "mode": "percent_of_charges",
-        "rate_pct": 1.5,
-        "base": ["energy", "fixed"],
-        "note": "Punjab electricity duty. Verified arithmetically against a published MEPCO bill (Rs 23.02 on Rs 1,534.47 = exactly 1.5%)."
-      }
+      "electricity_duty": { "rate_pct": 1.5, "verified": true, "base": ["energy", "fixed"], "note": "Punjab electricity duty, verified arithmetically against a published bill (Rs 23.02 on Rs 1,534.47)." }
+    },
+    {
+      "id": "fesco",
+      "name_en": "FESCO",
+      "name_ur": "فیسکو",
+      "full_name_en": "Faisalabad Electric Supply Company",
+      "region_en": "Punjab",
+      "region_ur": "پنجاب (فیصل آباد)",
+      "tariff_set": "exwapda",
+      "helpline": "118",
+      "website": "https://fesco.gov.pk",
+      "electricity_duty": { "rate_pct": 1.5, "verified": true, "base": ["energy", "fixed"], "note": "Punjab electricity duty; same provincial rate as LESCO." }
+    },
+    {
+      "id": "gepco",
+      "name_en": "GEPCO",
+      "name_ur": "گپکو",
+      "full_name_en": "Gujranwala Electric Power Company",
+      "region_en": "Punjab",
+      "region_ur": "پنجاب (گوجرانوالہ)",
+      "tariff_set": "exwapda",
+      "helpline": "118",
+      "website": "https://gepco.com.pk",
+      "electricity_duty": { "rate_pct": 1.5, "verified": true, "base": ["energy", "fixed"], "note": "Punjab electricity duty; same provincial rate as LESCO." }
+    },
+    {
+      "id": "mepco",
+      "name_en": "MEPCO",
+      "name_ur": "میپکو",
+      "full_name_en": "Multan Electric Power Company",
+      "region_en": "Punjab",
+      "region_ur": "پنجاب (ملتان)",
+      "tariff_set": "exwapda",
+      "helpline": "118",
+      "website": "https://mepco.com.pk",
+      "electricity_duty": { "rate_pct": 1.5, "verified": true, "base": ["energy", "fixed"], "note": "Punjab electricity duty; same provincial rate as LESCO." }
+    },
+    {
+      "id": "iesco",
+      "name_en": "IESCO",
+      "name_ur": "آئسکو",
+      "full_name_en": "Islamabad Electric Supply Company",
+      "region_en": "Islamabad Capital Territory",
+      "region_ur": "اسلام آباد",
+      "tariff_set": "exwapda",
+      "helpline": "118",
+      "website": "https://iesco.com.pk",
+      "electricity_duty": { "rate_pct": 1.5, "verified": false, "base": ["energy", "fixed"], "note": "ASSUMED 1.5%. ICT duty is set federally and is not independently verified; please check your bill and send a PR if it differs." }
+    },
+    {
+      "id": "pesco",
+      "name_en": "PESCO",
+      "name_ur": "پیسکو",
+      "full_name_en": "Peshawar Electric Supply Company",
+      "region_en": "Khyber Pakhtunkhwa",
+      "region_ur": "خیبر پختونخوا",
+      "tariff_set": "exwapda",
+      "helpline": "118",
+      "website": "https://pesco.com.pk",
+      "electricity_duty": { "rate_pct": 1.5, "verified": false, "base": ["energy", "fixed"], "note": "ASSUMED 1.5%. KPK rate not independently verified; please check your bill and send a PR if it differs." }
+    },
+    {
+      "id": "hesco",
+      "name_en": "HESCO",
+      "name_ur": "ہیسکو",
+      "full_name_en": "Hyderabad Electric Supply Company",
+      "region_en": "Sindh",
+      "region_ur": "سندھ (حیدرآباد)",
+      "tariff_set": "exwapda",
+      "helpline": "118",
+      "website": "https://hesco.gov.pk",
+      "electricity_duty": { "rate_pct": 1.5, "verified": false, "base": ["energy", "fixed"], "note": "ASSUMED 1.5%. Sindh rate not independently verified; please check your bill and send a PR if it differs." }
+    },
+    {
+      "id": "sepco",
+      "name_en": "SEPCO",
+      "name_ur": "سیپکو",
+      "full_name_en": "Sukkur Electric Supply Company",
+      "region_en": "Sindh",
+      "region_ur": "سندھ (سکھر)",
+      "tariff_set": "exwapda",
+      "helpline": "118",
+      "website": "https://sepco.com.pk",
+      "electricity_duty": { "rate_pct": 1.5, "verified": false, "base": ["energy", "fixed"], "note": "ASSUMED 1.5%. Sindh rate not independently verified; please check your bill and send a PR if it differs." }
+    },
+    {
+      "id": "qesco",
+      "name_en": "QESCO",
+      "name_ur": "کیو ایسکو",
+      "full_name_en": "Quetta Electric Supply Company",
+      "region_en": "Balochistan",
+      "region_ur": "بلوچستان",
+      "tariff_set": "exwapda",
+      "helpline": "118",
+      "website": "https://qesco.com.pk",
+      "electricity_duty": { "rate_pct": 1.5, "verified": false, "base": ["energy", "fixed"], "note": "ASSUMED 1.5%. Balochistan rate not independently verified; please check your bill and send a PR if it differs." }
     }
   ]
 }

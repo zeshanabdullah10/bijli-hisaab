@@ -6,6 +6,7 @@ const el = (id) => document.getElementById(id);
 
 const state = {
   lang: localStorage.getItem('bh_lang') || 'en',
+  discoId: localStorage.getItem('bh_disco') || 'lesco',
   units: Number(localStorage.getItem('bh_units')) || 300,
   consumerType: localStorage.getItem('bh_type') || 'unprotected',
   loadKw: Number(localStorage.getItem('bh_load')) || 5,
@@ -14,22 +15,34 @@ const state = {
   actual: localStorage.getItem('bh_actual') || '',
   budget: Number(localStorage.getItem('bh_budget')) || 20000,
   theme: localStorage.getItem('bh_theme') || null, // 'light' | 'dark' | null = system
+  solar: {
+    enabled: localStorage.getItem('bh_solar') === '1',
+    mode: localStorage.getItem('bh_solar_mode') || 'net_billing',
+    exported: Number(localStorage.getItem('bh_solar_exp')) || 0,
+    buyback: localStorage.getItem('bh_solar_buyback') || '',
+    cost: localStorage.getItem('bh_solar_cost') || '',
+  },
 };
 
 let tariff = null;
 let disco = null;
+let discos = null;
 let t = makeT(state.lang);
 let lastTotal = null;
 
 function persist() {
-  for (const [k, key] of [
-    ['lang', 'bh_lang'], ['units', 'bh_units'], ['consumerType', 'bh_type'],
-    ['loadKw', 'bh_load'], ['fpa', 'bh_fpa'], ['onATL', 'bh_atl'],
-    ['actual', 'bh_actual'], ['budget', 'bh_budget'], ['theme', 'bh_theme'],
-  ]) localStorage.setItem(key, state[k]);
+  const flat = {
+    bh_lang: state.lang, bh_disco: state.discoId, bh_units: state.units,
+    bh_type: state.consumerType, bh_load: state.loadKw, bh_fpa: state.fpa,
+    bh_atl: state.onATL ? '1' : '0', bh_actual: state.actual, bh_budget: state.budget,
+    bh_theme: state.theme, bh_solar: state.solar.enabled ? '1' : '0',
+    bh_solar_mode: state.solar.mode, bh_solar_exp: state.solar.exported,
+    bh_solar_buyback: state.solar.buyback, bh_solar_cost: state.solar.cost,
+  };
+  for (const [k, v] of Object.entries(flat)) localStorage.setItem(k, v);
 }
 
-function ctx() {
+function ctx(withSolar = true) {
   return {
     tariff, disco,
     units: state.units,
@@ -38,6 +51,14 @@ function ctx() {
     fpaOverride: state.fpa === '' ? null : Number(state.fpa),
     onATL: state.onATL,
     phase: 'single',
+    solar: withSolar && state.solar.enabled
+      ? {
+          mode: state.solar.mode,
+          importedUnits: state.units,
+          exportedUnits: state.solar.exported,
+          buybackPerUnit: state.solar.buyback === '' ? undefined : Number(state.solar.buyback),
+        }
+      : null,
   };
 }
 
@@ -81,13 +102,23 @@ function applyStaticTexts() {
   el('disclaimer').textContent = t('disclaimer');
   el('data-updated').textContent = t('data_updated', { date: tariff.verified_on });
   el('theme-toggle').setAttribute('aria-label', t('theme_toggle'));
-  el('helpline-link').textContent = `${t('audit_helpline')}: ${disco.helpline}`;
+  el('helpline-link').textContent = `${disco.name_en} ${t('audit_helpline')}: ${disco.helpline}`;
+  el('helpline-link').href = `tel:${disco.helpline}`;
+  el('complaint-link').href = disco.regulator_complaints || 'https://nepra.org.pk/complaints.php';
+
+  // Units label becomes "grid imports" when solar is on.
+  document.querySelector('label[for="units-input"]').textContent =
+    state.solar.enabled ? t('solar_imports_label') : t('units_label');
 }
 
-const CLUSTER_DEFS = () => [
-  { label: t('cluster_energy'), ids: ['energy', 'fixed', 'minimum', 'fc_surcharge', 'qta', 'fpa'] },
-  { label: t('cluster_taxes'), ids: ['electricity_duty', 'gst', 'tv_fee', 'income_tax'] },
-];
+const CLUSTER_DEFS = () => {
+  const defs = [
+    { label: t('cluster_energy'), ids: ['energy', 'fixed', 'minimum', 'fc_surcharge', 'qta', 'fpa'] },
+    { label: t('cluster_taxes'), ids: ['electricity_duty', 'gst', 'tv_fee', 'income_tax'] },
+  ];
+  if (state.solar.enabled) defs.push({ label: t('solar_title'), ids: ['solar_export'] });
+  return defs;
+};
 
 function renderResults() {
   const bill = computeBill(ctx());
@@ -122,7 +153,7 @@ function renderResults() {
         <details class="bill-line kind-${item.kind}" data-id="${item.id}">
           <summary>
             <span class="line-name${ur ? ' ur' : ''}">${ur ? item.name_ur : item.name_en}</span>
-            <span class="line-amt tnum">Rs ${fmt(item.amount)}</span>
+            <span class="line-amt tnum">${item.amount < 0 ? '− ' : ''}Rs ${fmt(Math.abs(item.amount))}</span>
             <svg class="line-chev" aria-hidden="true"><use href="#i-chevron-down"/></svg>
           </summary>
           <div class="line-detail">
@@ -141,7 +172,7 @@ function renderResults() {
         <details class="bill-line kind-${item.kind}" data-id="${item.id}">
           <summary>
             <span class="line-name${ur ? ' ur' : ''}">${ur ? item.name_ur : item.name_en}</span>
-            <span class="line-amt tnum">Rs ${fmt(item.amount)}</span>
+            <span class="line-amt tnum">${item.amount < 0 ? '− ' : ''}Rs ${fmt(Math.abs(item.amount))}</span>
             <svg class="line-chev" aria-hidden="true"><use href="#i-chevron-down"/></svg>
           </summary>
           <div class="line-detail"><p class="formula">${item.formula}</p></div>
@@ -201,6 +232,34 @@ function renderResults() {
   // Warnings as alert cards
   el('warnings').innerHTML = bill.warnings.map((w) => `
     <div class="warn-item"><svg aria-hidden="true"><use href="#i-alert-triangle"/></svg><span>${w}</span></div>`).join('');
+
+  renderSolar();
+}
+
+function renderSolar() {
+  const s = state.solar;
+  el('solar-panel').hidden = !s.enabled;
+  el('solar-card').hidden = !s.enabled;
+  el('solar-buyback-row').hidden = s.mode !== 'net_billing';
+  if (!s.enabled) return;
+
+  const mode = tariff.solar.modes[s.mode];
+  el('solar-mode-note').textContent = state.lang === 'ur' ? mode.note_ur : mode.note_en;
+
+  const withSolar = computeBill(ctx(true)).total;
+  const without = computeBill(ctx(false)).total;
+  const saving = Math.max(0, without - withSolar);
+  el('solar-with').textContent = `Rs ${fmt(withSolar)}`;
+  el('solar-without').textContent = `Rs ${fmt(without)}`;
+  el('solar-saving').textContent = `Rs ${fmt(saving)}`;
+
+  const cost = s.cost === '' ? 0 : Number(s.cost);
+  if (cost > 0 && saving > 0) {
+    const months = Math.ceil(cost / saving);
+    el('solar-payback').textContent = t('payback_fmt', { y: Math.floor(months / 12), m: months % 12 });
+  } else {
+    el('solar-payback').textContent = t('payback_never');
+  }
 }
 
 function renderChart() {
@@ -313,17 +372,54 @@ function wire() {
   });
   el('theme-toggle').addEventListener('click', toggleTheme);
   el('share-btn').addEventListener('click', copyShare);
+
+  el('disco-select').addEventListener('change', async (e) => {
+    state.discoId = e.target.value;
+    disco = discos.discos.find((d) => d.id === state.discoId);
+    if (disco.tariff_set !== tariff.tariff_set) await loadTariff(disco.tariff_set);
+    persist(); render();
+  });
+
+  el('solar-toggle').addEventListener('change', (e) => {
+    state.solar.enabled = e.target.checked;
+    persist(); render();
+  });
+  const smodes = document.querySelectorAll('input[name=smode]');
+  smodes.forEach((r) => r.addEventListener('change', (e) => {
+    state.solar.mode = e.target.value;
+    el('solar-mode-seg').style.setProperty('--active', [...smodes].indexOf(e.target));
+    persist(); render();
+  }));
+  el('solar-export-input').addEventListener('input', (e) => {
+    state.solar.exported = Math.max(0, Number(e.target.value) || 0);
+    persist(); renderResults(); renderChart();
+  });
+  el('solar-buyback-input').addEventListener('input', (e) => {
+    state.solar.buyback = e.target.value;
+    persist(); renderResults();
+  });
+  el('solar-cost-input').addEventListener('input', (e) => {
+    state.solar.cost = e.target.value;
+    persist(); renderResults();
+  });
 }
 
 // ---------------------------------------------------------------- boot
 
+async function loadTariff(setId) {
+  const index = await fetch(`data/tariffs/${setId}/index.json`).then((r) => r.json());
+  tariff = await fetch(`data/tariffs/${setId}/${index.default}.json`).then((r) => r.json());
+}
+
 async function boot() {
-  const [discos, index] = await Promise.all([
-    fetch('data/discos.json').then((r) => r.json()),
-    fetch('data/tariffs/lesco/index.json').then((r) => r.json()),
-  ]);
-  disco = discos.discos.find((d) => d.id === 'lesco');
-  tariff = await fetch(`data/tariffs/lesco/${index.default}.json`).then((r) => r.json());
+  discos = await fetch('data/discos.json').then((r) => r.json());
+  disco = discos.discos.find((d) => d.id === state.discoId)
+    || discos.discos.find((d) => d.id === 'lesco');
+  state.discoId = disco.id;
+  await loadTariff(disco.tariff_set);
+
+  el('disco-select').innerHTML = discos.discos.map((d) =>
+    `<option value="${d.id}" ${d.id === state.discoId ? 'selected' : ''}>${d.name_en}</option>`).join('');
 
   el('units-input').value = state.units;
   el('units-slider').value = Math.min(state.units, 1000);
@@ -338,6 +434,15 @@ async function boot() {
   el('atl-input').checked = state.onATL;
   el('actual-input').value = state.actual;
   el('budget-input').value = state.budget;
+  el('solar-toggle').checked = state.solar.enabled;
+  const smodeChecked = document.querySelector(`input[name=smode][value=${state.solar.mode}]`);
+  if (smodeChecked) {
+    smodeChecked.checked = true;
+    el('solar-mode-seg').style.setProperty('--active', [...document.querySelectorAll('input[name=smode]')].indexOf(smodeChecked));
+  }
+  el('solar-export-input').value = state.solar.exported;
+  el('solar-buyback-input').value = state.solar.buyback;
+  el('solar-cost-input').value = state.solar.cost;
 
   // Footer source list from the tariff file, provenance stays visible.
   el('source-list').innerHTML = tariff.sources

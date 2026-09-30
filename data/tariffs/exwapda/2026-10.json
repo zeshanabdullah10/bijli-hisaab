@@ -1,5 +1,6 @@
 {
-  "disco": "lesco",
+  "tariff_set": "exwapda",
+  "applies_to": "All ex-WAPDA DISCOs (LESCO, FESCO, GEPCO, MEPCO, IESCO, PESCO, HESCO, SEPCO, QESCO) under the uniform national tariff. K-Electric is NOT covered.",
   "period_label": "2026-10",
   "effective_date": "2026-02-12",
   "verified_on": "2026-10-01",
@@ -12,23 +13,28 @@
     },
     {
       "id": "bco",
-      "title": "BillsCheckOnline — LESCO unit price Sept 2026, 200-unit/6-month protection rule, non-filer income tax rule",
+      "title": "BillsCheckOnline - LESCO unit price Sept 2026, 200-unit/6-month protection rule, non-filer income tax rule",
       "url": "https://billscheckonline.pk"
     },
     {
       "id": "mepco_tax",
-      "title": "MEPCO bill tax guide — GST 18%, electricity duty 1.5% (Punjab), TV licence fee Rs 35 (verified against worked bill example)",
+      "title": "MEPCO bill tax guide - GST 18%, electricity duty 1.5% (Punjab), TV licence fee Rs 35 (verified against worked bill example)",
       "url": "https://mymepcobill.com"
     },
     {
       "id": "qta_sep26",
-      "title": "NEPRA Quarterly Tariff Adjustment +Rs 0.52/unit for Sept–Nov 2026 (as reported by Business Recorder); QTA Jun–Aug 2026 was a credit of Rs 1.9857/unit",
+      "title": "NEPRA Quarterly Tariff Adjustment +Rs 0.52/unit for Sept-Nov 2026 (as reported by Business Recorder); QTA Jun-Aug 2026 was a credit of Rs 1.9857/unit",
       "url": "https://www.facebook.com/BusinessRecorder/posts/1514318160722644/"
     },
     {
       "id": "fca_jun26",
       "title": "NEPRA Fuel Charges Adjustment for June 2026: +Rs 0.7503/unit, ex-WAPDA DISCOs (as reported by Business Recorder)",
       "url": "https://www.facebook.com/BusinessRecorder/posts/1511700014317792/"
+    },
+    {
+      "id": "solar_reg",
+      "title": "NEPRA Prosumer Regulations 2026 (notified Feb 2026): new solar connections move from net metering to net billing; buyback reported at Rs 8.13-11/unit vs the earlier ~Rs 26/unit offset; existing net-metering agreements grandfathered",
+      "url": "https://hamariweb.com"
     },
     {
       "id": "nepra",
@@ -38,8 +44,8 @@
   ],
   "caveats": [
     "Fixed charges per kW face a pending review petition before NEPRA and may change before the 15 Jan 2027 rebasing.",
-    "FPA/FCA changes every month and is billed ~2 months in arrears; the value here is the latest documented one. Your paper bill prints the exact FPA — enter it in the FPA field for an accurate audit.",
-    "Electricity duty is set provincially; 1.5% verified for Punjab. Other provinces differ.",
+    "FPA/FCA changes every month and is billed ~2 months in arrears; the value here is the latest documented one. Your paper bill prints the exact FPA - enter it in the FPA field for an accurate audit.",
+    "Electricity duty is set provincially; 1.5% is verified for Punjab only. Other regions are assumed 1.5% pending verified PRs.",
     "Estimated totals should match a real bill within a few percent; arrears, meter rent, municipal taxes and estimated readings are not modelled."
   ],
   "consumer_classes": {
@@ -127,5 +133,22 @@
       "note": "Non-filers pay 7.5% income tax on home bills of Rs 25,000 or more; ATL filers pay none.",
       "source": "bco"
     }
+  },
+  "solar": {
+    "credit_name_en": "Solar export credit",
+    "credit_name_ur": "سولر ایکسپورٹ کریڈٹ",
+    "modes": {
+      "net_metering": {
+        "note_en": "Grandfathered net-metering agreements: exports offset imports 1:1 before slab billing. Excess export rolls forward as a unit credit, not cash.",
+        "note_ur": "پرانے نیٹ میٹرنگ معاہدے: بل سے پہلے ایکسپورٹ درآمدات کو ایک مقابل ایک کم کرتا ہے۔ اضافی ایکسپورٹ اگلے مہینے بطور یونٹ کریڈٹ چلتا ہے، نقد نہیں۔"
+      },
+      "net_billing": {
+        "buyback_per_kwh": 10.0,
+        "note_en": "Prosumer Regulations 2026 (new connections): grid imports are billed at the full slab rate and exports are paid separately at the reference buyback price, reported between Rs 8.13 and Rs 11 per unit. Enter your agreement's exact rate.",
+        "note_ur": "پروسومر ریگولیشنز 2026 (نئے کنکشن): درآمدیات پوری سلیب شرح پر بل ہوتی ہیں اور ایکسپورٹ الگ سے حوالہ شرح پر خریدی جاتی ہیں، جو 8.13 سے 11 روپے فی یونٹ بتائی جاتی ہے۔ اپنے معاہدے کی درست شرح درج کریں۔",
+        "source": "solar_reg"
+      }
+    },
+    "source": "solar_reg"
   }
 }
