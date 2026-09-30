@@ -158,10 +158,7 @@ function renderResults() {
   el('total-value').textContent = fmt(bill.total);
   el('effective-rate').textContent = `${t('effective_rate')}: Rs ${fmt2(bill.effectiveRatePerUnit)} ${t('per_unit')}`;
   const typeNames = { unprotected: t('type_unprotected'), protected: t('type_protected'), lifeline: t('type_lifeline') };
-  el('bill-head-line').innerHTML = `
-    <span class="chip">${typeNames[state.consumerType]}</span>
-    <span class="chip tnum">${fmt(state.units)} ${ur ? 'یونٹس' : 'units'}</span>
-    <span class="chip tnum">${cliff.slabLabel}</span>`;
+  el('bill-head-line').textContent = `${typeNames[state.consumerType]} · ${fmt(state.units)} ${ur ? 'یونٹس' : 'units'}, ${cliff.slabLabel} slab`;
 
   // Bill breakdown, clustered like a statement
   const lineHTML = (item) => `
@@ -204,12 +201,10 @@ function renderResults() {
   el('type-note').textContent = ur
     ? (cls.eligibility_ur || cls.mode_note_ur || '') : (cls.eligibility_en || cls.mode_note_en || '');
 
-  // Cliff tiles
-  el('cliff-slab').textContent = cliff.slabLabel;
+  // Cliff tiles: only the two decision-carrying numbers.
   if (cliff.unitsRemaining !== null) {
     el('cliff-remaining').textContent = fmt(cliff.unitsRemaining);
     el('cliff-crossing').textContent = `+${fmt(cliff.crossingCost)}`;
-    el('cliff-next-unit').textContent = `Rs ${fmt2(cliff.marginalCostNextUnit)}`;
     el('cliff-top-note').hidden = true;
     el('cliff-grid').hidden = false;
   } else {
@@ -256,9 +251,9 @@ function renderSolar() {
   const s = state.solar;
   const nb = s.mode === 'net_billing';
   el('solar-panel').hidden = !s.enabled;
-  el('solar-card').hidden = !s.enabled;
-  el('solar-buyback-row').hidden = !nb;
-  el('solar-buyback-peak-row').hidden = !nb;
+  el('solar-strip').hidden = !s.enabled;
+  document.getElementById('solar-buyback-cell').hidden = !nb;
+  document.getElementById('solar-buyback-peak-cell').hidden = !nb;
 
   // With peak/off-peak registers filled, total imports is derived, so the
   // manual units controls step aside.

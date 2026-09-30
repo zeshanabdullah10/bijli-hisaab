@@ -233,15 +233,6 @@ svg { display: inline-block; vertical-align: -0.18em; }
 .pill-btn:hover { background: var(--surface-3); }
 .pill-btn svg { width: 17px; height: 17px; color: var(--text-2); }
 
-.rates-strip {
-  max-width: 1160px;
-  margin: 0 auto;
-  padding: 14px 16px 0;
-  color: var(--text-2);
-  font-size: 0.78rem;
-  text-align: center;
-}
-
 /* ---- layout ------------------------------------------------------------------ */
 
 .layout {
@@ -257,20 +248,15 @@ svg { display: inline-block; vertical-align: -0.18em; }
   .layout {
     grid-template-columns: 400px minmax(0, 1fr);
     grid-template-areas:
-      "hero hero"
-      "panel bill"
+      "panel result"
       "panel cliff"
-      "panel tools"
-      "panel solar";
+      "panel check";
     gap: 18px;
   }
-  .hero { grid-area: hero; }
   .panel { grid-area: panel; align-self: start; position: sticky; top: 76px; }
-  .bill { grid-area: bill; }
+  .result { grid-area: result; }
   .cliff { grid-area: cliff; }
-  .tools { grid-area: tools; }
-  .solar-card { grid-area: solar; }
-  .rates-strip { text-align: start; padding-top: 18px; }
+  .check { grid-area: check; }
 }
 
 /* ---- cards -------------------------------------------------------------------- */
@@ -288,7 +274,7 @@ svg { display: inline-block; vertical-align: -0.18em; }
   .panel { animation-delay: 0.06s; }
   .bill { animation-delay: 0.12s; }
   .cliff { animation-delay: 0.18s; }
-  .tools { animation-delay: 0.24s; }
+  .check { animation-delay: 0.24s; }
   @keyframes card-in {
     from { opacity: 0; transform: translateY(16px) scale(0.99); }
   }
@@ -304,13 +290,15 @@ svg { display: inline-block; vertical-align: -0.18em; }
 .head-ic { width: 20px; height: 20px; color: var(--accent); flex: none; }
 .head-side { margin-inline-start: auto; font-size: 0.75rem; color: var(--text-3); }
 
-/* ---- hero ---------------------------------------------------------------------- */
+/* ---- result card: hero + breakdown as one surface ------------------------- */
 
+.result { padding: 0; overflow: hidden; }
 .hero {
   text-align: center;
-  padding: 26px 18px 20px;
+  padding: 26px 18px 18px;
   position: relative;
   overflow: hidden;
+  border-bottom: 1px solid var(--hairline);
 }
 .hero::before {
   content: "";
@@ -328,7 +316,7 @@ svg { display: inline-block; vertical-align: -0.18em; }
   color: var(--text-2);
 }
 .hero-amount {
-  font-size: clamp(3rem, 16vw, 4.4rem);
+  font-size: clamp(3rem, 16vw, 4.2rem);
   font-weight: 700;
   letter-spacing: -0.035em;
   line-height: 1.05;
@@ -337,23 +325,8 @@ svg { display: inline-block; vertical-align: -0.18em; }
 }
 .hero-cur { font-size: 0.45em; font-weight: 600; color: var(--accent); margin-inline-end: 0.18em; }
 .hero-sub { color: var(--text-2); font-size: 0.95rem; }
-.hero-meta {
-  margin: 16px auto 0;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
-}
-.hero-meta .chip {
-  font-size: 0.76rem;
-  font-weight: 500;
-  color: var(--text-2);
-  background: var(--surface-2);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-pill);
-  padding: 4px 11px;
-}
-.hero .btn-primary { margin-top: 16px; }
+.hero-caption { color: var(--text-3); font-size: 0.8rem; margin-top: 6px; }
+.hero .btn-primary { display: none; }
 
 @media (prefers-reduced-motion: no-preference) {
   .hero-amount.pulse { animation: pulse 0.4s var(--ease-out); }
@@ -626,6 +599,70 @@ select.row-select:focus {
   color: var(--text-3);
 }
 
+/* ---- "More options" disclosure ---------------------------------------------- */
+
+.more { margin-top: 16px; }
+.more > summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 2px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+  list-style: none;
+  border-top: 1px solid var(--hairline);
+  -webkit-tap-highlight-color: transparent;
+}
+.more > summary::-webkit-details-marker { display: none; }
+.more > summary .line-chev { margin-inline-start: auto; }
+.more > summary:hover { color: var(--text); }
+.more[open] > summary { color: var(--text); }
+.more .group { margin-top: 10px; }
+
+/* ---- compact solar register grid --------------------------------------------- */
+
+#solar-panel { margin-top: 16px; }
+.reg-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.reg {
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-tile);
+  padding: 9px 11px;
+  display: grid;
+  gap: 5px;
+}
+.reg label { font-size: 0.7rem; font-weight: 600; color: var(--text-2); line-height: 1.3; margin: 0; }
+.reg input {
+  width: 100%;
+  padding: 6px 9px;
+  border-radius: 9px;
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: end;
+}
+.reg input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3.5px var(--accent-soft);
+}
+.reg input::placeholder { color: var(--text-3); font-weight: 400; }
+.reg.hidden { display: none; }
+
+/* ---- reality check card --------------------------------------------------------- */
+
+.check-divider { border-top: 1px solid var(--hairline); margin: 16px 0 4px; }
+
 /* ---- bill breakdown -------------------------------------------------------------------- */
 
 .cluster-label {
@@ -693,6 +730,20 @@ select.row-select:focus {
   border-bottom: 1px dashed var(--hairline);
 }
 
+.bill-body { padding: 14px 18px 6px; }
+.result .btn-primary { margin: 10px 18px 18px; }
+.result .card-head { display: none; }
+
+.solar-strip {
+  margin: 10px 18px 0;
+  grid-template-columns: repeat(2, 1fr);
+  background: var(--accent-soft);
+  border: 1px solid var(--hairline);
+  padding: 10px;
+  border-radius: var(--radius-tile);
+}
+@media (min-width: 640px) { .solar-strip { grid-template-columns: repeat(4, 1fr); } }
+
 .bill-total {
   display: flex;
   justify-content: space-between;
@@ -749,7 +800,7 @@ select.row-select:focus {
 
 /* ---- tools (budget + audit) ------------------------------------------------------------------ */
 
-.tools { display: grid; gap: 22px; }
+.check .row { padding-inline: 2px; }
 .tool-big { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.015em; }
 
 .audit-row {
@@ -811,7 +862,7 @@ select.row-select:focus {
 /* ---- RTL ------------------------------------------------------------------------------------ */
 
 [dir="rtl"] .hero-amount, [dir="rtl"] .bill-total .line-amt, [dir="rtl"] .tile b,
-[dir="rtl"] .tool-big, [dir="rtl"] .line-amt, [dir="rtl"] .formula {
+[dir="rtl"] .line-amt, [dir="rtl"] .formula {
   direction: ltr;
   unicode-bidi: embed;
 }

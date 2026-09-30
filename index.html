@@ -4,12 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>BijliHisaab: your electricity bill, translated</title>
-  <meta name="description" content="Line-by-line decoder and slab-cliff calculator for Pakistani domestic electricity bills (LESCO). Bilingual, offline-capable, open data.">
+  <meta name="description" content="Line-by-line decoder and slab-cliff calculator for Pakistani domestic electricity bills. Bilingual, offline-capable, open data.">
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f3f0">
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b0d0c">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=0.3.4">
+  <link rel="stylesheet" href="css/style.css?v=0.3.5">
   <script>
     // Theme flash guard: set data-theme before first paint.
     (function () {
@@ -29,7 +29,6 @@
     <symbol id="i-shield-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.46 20.846A12 12 0 0 1 3.5 6A12 12 0 0 0 12 3a12 12 0 0 0 8.5 3a12 12 0 0 1-.09 7.06M15 19l2 2l4-4"/></symbol>
     <symbol id="i-wallet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M17 8V5a1 1 0 0 0-1-1H6a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1-1 1H6a2 2 0 0 1-2-2V6"/><path d="M20 12v4h-4a2 2 0 0 1 0-4z"/></g></symbol>
     <symbol id="i-receipt" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16l-3-2l-2 2l-2-2l-2 2l-2-2zM9 7h6m-6 4h6m-2 4h2"/></symbol>
-    <symbol id="i-receipt-tax" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m9 14l6-6"/><path fill="currentColor" d="M9 8.5a.5.5 0 1 0 1 0a.5.5 0 1 0-1 0m5 5a.5.5 0 1 0 1 0a.5.5 0 1 0-1 0"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16l-3-2l-2 2l-2-2l-2 2l-2-2z"/></g></symbol>
     <symbol id="i-trending-up" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m3 17l6-6l4 4l8-8"/><path d="M14 7h7v7"/></g></symbol>
     <symbol id="i-search" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0-14 0m18 11l-6-6"/></symbol>
     <symbol id="i-share" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12a3 3 0 1 0 6 0a3 3 0 1 0-6 0m12-6a3 3 0 1 0 6 0a3 3 0 1 0-6 0m0 12a3 3 0 1 0 6 0a3 3 0 1 0-6 0m-6.3-7.3l6.6-3.4m-6.6 6l6.6 3.4"/></symbol>
@@ -64,32 +63,10 @@
     </div>
   </header>
 
-  <div class="rates-strip"><p id="rates-chip"></p></div>
-
   <main class="layout">
 
-    <!-- ============ hero: the number ============ -->
-    <section class="card hero" aria-labelledby="total-value">
-      <p class="hero-label" data-i18n="total_label">Estimated total</p>
-      <p class="hero-amount"><span class="hero-cur">Rs</span><span class="tnum" id="total-value"></span></p>
-      <p class="hero-sub" id="effective-rate"></p>
-      <div class="hero-meta" id="bill-head-line"></div>
-      <button class="btn-primary" id="share-btn">
-        <svg aria-hidden="true"><use href="#i-share"/></svg>
-        <span data-i18n="share_btn">Copy WhatsApp summary</span>
-      </button>
-    </section>
-
-    <!-- ============ inputs ============ -->
+    <!-- ============ inputs: only what's needed ============ -->
     <section class="card panel" aria-label="inputs">
-
-      <div class="seg" id="ctype-seg" role="radiogroup" aria-label="Consumer type">
-        <span class="seg-thumb" aria-hidden="true"></span>
-        <label class="seg-item"><input type="radio" name="ctype" value="unprotected" checked><span data-i18n="type_unprotected">Unprotected</span></label>
-        <label class="seg-item"><input type="radio" name="ctype" value="protected"><span data-i18n="type_protected">Protected</span></label>
-        <label class="seg-item"><input type="radio" name="ctype" value="lifeline"><span data-i18n="type_lifeline">Lifeline</span></label>
-      </div>
-      <p class="seg-note" id="type-note"></p>
 
       <div class="units-block">
         <div class="units-head">
@@ -104,44 +81,19 @@
         <input type="range" id="units-slider" min="0" max="1000" step="1" value="300" aria-label="Units slider">
       </div>
 
-      <div class="group">
-        <div class="row">
-          <svg class="row-ic" aria-hidden="true"><use href="#i-plug"/></svg>
-          <label class="row-label" for="disco-select" data-i18n="disco_label">DISCO</label>
-          <select id="disco-select" class="row-select"></select>
-        </div>
-        <div class="row">
-          <svg class="row-ic" aria-hidden="true"><use href="#i-gauge"/></svg>
-          <label class="row-label" for="load-input" data-i18n="load_label">Sanctioned load (kW)</label>
-          <input type="number" id="load-input" class="row-input tnum" min="0" max="50" step="0.5" value="5">
-        </div>
-        <div class="row">
-          <svg class="row-ic" aria-hidden="true"><use href="#i-flame"/></svg>
-          <label class="row-label" for="fpa-input" data-i18n="fpa_label">FPA (Rs/unit)</label>
-          <input type="number" id="fpa-input" class="row-input tnum" min="-10" max="20" step="0.01" placeholder="auto">
-        </div>
-        <div class="row row-switch">
-          <svg class="row-ic" aria-hidden="true"><use href="#i-shield-check"/></svg>
-          <span class="row-label" data-i18n="filer_label">Tax filer (ATL)</span>
-          <span class="switch"><input type="checkbox" id="atl-input" checked aria-label="On the Active Taxpayer List"><span class="switch-track"></span></span>
-        </div>
-        <div class="row row-switch">
-          <svg class="row-ic" aria-hidden="true"><use href="#i-sun"/></svg>
-          <span class="row-label" data-i18n="solar_label">Rooftop solar</span>
-          <span class="switch"><input type="checkbox" id="solar-toggle" aria-label="Rooftop solar"><span class="switch-track"></span></span>
-        </div>
-        <div class="row">
-          <svg class="row-ic" aria-hidden="true"><use href="#i-wallet"/></svg>
-          <label class="row-label" for="budget-input" data-i18n="budget_label">My budget (Rs)</label>
-          <input type="number" id="budget-input" class="row-input tnum" min="0" step="500" value="20000">
-        </div>
-        <div class="row">
-          <svg class="row-ic" aria-hidden="true"><use href="#i-receipt"/></svg>
-          <label class="row-label" for="actual-input" data-i18n="actual_bill_label">Actual bill (Rs)</label>
-          <input type="number" id="actual-input" class="row-input tnum" min="0" step="1">
-        </div>
+      <div class="seg" id="ctype-seg" role="radiogroup" aria-label="Consumer type">
+        <span class="seg-thumb" aria-hidden="true"></span>
+        <label class="seg-item"><input type="radio" name="ctype" value="unprotected" checked><span data-i18n="type_unprotected">Unprotected</span></label>
+        <label class="seg-item"><input type="radio" name="ctype" value="protected"><span data-i18n="type_protected">Protected</span></label>
+        <label class="seg-item"><input type="radio" name="ctype" value="lifeline"><span data-i18n="type_lifeline">Lifeline</span></label>
       </div>
-      <p class="group-hint" data-i18n="fpa_hint">Bills print the exact FPA rate. Leave empty to use the latest documented value.</p>
+      <p class="seg-note" id="type-note"></p>
+
+      <div class="row row-switch">
+        <svg class="row-ic" aria-hidden="true"><use href="#i-sun"/></svg>
+        <span class="row-label" data-i18n="solar_label">Rooftop solar</span>
+        <span class="switch"><input type="checkbox" id="solar-toggle" aria-label="Rooftop solar"><span class="switch-track"></span></span>
+      </div>
 
       <div id="solar-panel" hidden>
         <div class="seg two" id="solar-mode-seg" role="radiogroup" aria-label="Solar connection type">
@@ -150,61 +102,80 @@
           <label class="seg-item"><input type="radio" name="smode" value="net_billing"><span data-i18n="solar_nb">Net billing</span></label>
         </div>
         <p class="seg-note" id="solar-mode-note"></p>
-        <div class="group">
-          <div class="row">
-            <svg class="row-ic" aria-hidden="true"><use href="#i-trending-up"/></svg>
-            <label class="row-label" for="solar-imp-peak" data-i18n="solar_imports_peak_label">Peak imports (kWh)</label>
-            <input type="number" id="solar-imp-peak" class="row-input tnum" min="0" max="5000" step="1" placeholder="0">
-          </div>
-          <div class="row">
-            <svg class="row-ic" aria-hidden="true"><use href="#i-trending-up"/></svg>
-            <label class="row-label" for="solar-imp-off" data-i18n="solar_imports_off_label">Off-peak imports (kWh)</label>
-            <input type="number" id="solar-imp-off" class="row-input tnum" min="0" max="5000" step="1" placeholder="0">
-          </div>
-          <div class="row">
-            <svg class="row-ic" aria-hidden="true"><use href="#i-share"/></svg>
-            <label class="row-label" for="solar-exp-peak" data-i18n="solar_exports_peak_label">Exported at peak (kWh)</label>
-            <input type="number" id="solar-exp-peak" class="row-input tnum" min="0" max="5000" step="1" placeholder="0">
-          </div>
-          <div class="row">
-            <svg class="row-ic" aria-hidden="true"><use href="#i-share"/></svg>
-            <label class="row-label" for="solar-exp-off" data-i18n="solar_exports_off_label">Exported off-peak (kWh)</label>
-            <input type="number" id="solar-exp-off" class="row-input tnum" min="0" max="5000" step="1" placeholder="0">
-          </div>
-          <div class="row" id="solar-buyback-row">
-            <svg class="row-ic" aria-hidden="true"><use href="#i-wallet"/></svg>
-            <label class="row-label" for="solar-buyback-input" data-i18n="solar_buyback_label">Off-peak buyback (Rs/unit)</label>
-            <input type="number" id="solar-buyback-input" class="row-input tnum" min="0" max="50" step="0.01" placeholder="auto">
-          </div>
-          <div class="row" id="solar-buyback-peak-row">
-            <svg class="row-ic" aria-hidden="true"><use href="#i-wallet"/></svg>
-            <label class="row-label" for="solar-buyback-peak" data-i18n="solar_buyback_peak_label">Peak buyback (Rs/unit)</label>
-            <input type="number" id="solar-buyback-peak" class="row-input tnum" min="0" max="50" step="0.01" placeholder="auto">
-          </div>
-          <div class="row">
-            <svg class="row-ic" aria-hidden="true"><use href="#i-wallet"/></svg>
-            <label class="row-label" for="solar-cost-input" data-i18n="solar_cost_label">System cost (Rs)</label>
-            <input type="number" id="solar-cost-input" class="row-input tnum" min="0" max="10000000" step="10000" placeholder="0">
-          </div>
+        <div class="reg-grid">
+          <div class="reg"><label for="solar-imp-peak" data-i18n="solar_imports_peak_label">Peak imports (kWh)</label><input type="number" id="solar-imp-peak" class="tnum" min="0" max="5000" step="1" placeholder="0"></div>
+          <div class="reg"><label for="solar-imp-off" data-i18n="solar_imports_off_label">Off-peak imports (kWh)</label><input type="number" id="solar-imp-off" class="tnum" min="0" max="5000" step="1" placeholder="0"></div>
+          <div class="reg"><label for="solar-exp-peak" data-i18n="solar_exports_peak_label">Exported at peak (kWh)</label><input type="number" id="solar-exp-peak" class="tnum" min="0" max="5000" step="1" placeholder="0"></div>
+          <div class="reg"><label for="solar-exp-off" data-i18n="solar_exports_off_label">Exported off-peak (kWh)</label><input type="number" id="solar-exp-off" class="tnum" min="0" max="5000" step="1" placeholder="0"></div>
+          <div class="reg" id="solar-buyback-cell"><label for="solar-buyback-input" data-i18n="solar_buyback_label">Off-peak buyback (Rs/unit)</label><input type="number" id="solar-buyback-input" class="tnum" min="0" max="50" step="0.01" placeholder="auto"></div>
+          <div class="reg" id="solar-buyback-peak-cell"><label for="solar-buyback-peak" data-i18n="solar_buyback_peak_label">Peak buyback (Rs/unit)</label><input type="number" id="solar-buyback-peak" class="tnum" min="0" max="50" step="0.01" placeholder="auto"></div>
+          <div class="reg"><label for="solar-cost-input" data-i18n="solar_cost_label">System cost (Rs)</label><input type="number" id="solar-cost-input" class="tnum" min="0" max="10000000" step="10000" placeholder="0"></div>
         </div>
         <p class="group-hint" data-i18n="solar_hint">Read the peak and off-peak registers off your net-metering statement. Total grid imports above update automatically as peak + off-peak.</p>
       </div>
 
+      <details class="more" id="more-options">
+        <summary>
+          <svg class="row-ic" aria-hidden="true"><use href="#i-info-circle"/></svg>
+          <span data-i18n="more_options">More options</span>
+          <svg class="line-chev" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+        </summary>
+        <div class="group">
+          <div class="row">
+            <svg class="row-ic" aria-hidden="true"><use href="#i-plug"/></svg>
+            <label class="row-label" for="disco-select" data-i18n="disco_label">DISCO</label>
+            <select id="disco-select" class="row-select"></select>
+          </div>
+          <div class="row">
+            <svg class="row-ic" aria-hidden="true"><use href="#i-gauge"/></svg>
+            <label class="row-label" for="load-input" data-i18n="load_label">Sanctioned load (kW)</label>
+            <input type="number" id="load-input" class="row-input tnum" min="0" max="50" step="0.5" value="5">
+          </div>
+          <div class="row">
+            <svg class="row-ic" aria-hidden="true"><use href="#i-flame"/></svg>
+            <label class="row-label" for="fpa-input" data-i18n="fpa_label">FPA (Rs/unit)</label>
+            <input type="number" id="fpa-input" class="row-input tnum" min="-10" max="20" step="0.01" placeholder="auto">
+          </div>
+          <div class="row row-switch">
+            <svg class="row-ic" aria-hidden="true"><use href="#i-shield-check"/></svg>
+            <span class="row-label" data-i18n="filer_label">Tax filer (ATL)</span>
+            <span class="switch"><input type="checkbox" id="atl-input" checked aria-label="On the Active Taxpayer List"><span class="switch-track"></span></span>
+          </div>
+        </div>
+        <p class="group-hint" data-i18n="fpa_hint">Bills print the exact FPA rate. Leave empty to use the latest documented value.</p>
+      </details>
+
     </section>
 
-    <!-- ============ bill breakdown ============ -->
-    <section class="card bill">
-      <header class="card-head">
-        <svg class="head-ic" aria-hidden="true"><use href="#i-receipt"/></svg>
-        <h2 data-i18n="breakdown_title">Your bill, line by line</h2>
-        <span class="head-side" data-i18n="breakdown_hint">tap a line</span>
-      </header>
-      <div id="bill-items"></div>
-      <div class="bill-total" id="bill-total-row"></div>
-      <div id="warnings"></div>
+    <!-- ============ the result: number + where it goes ============ -->
+    <section class="card result">
+      <div class="hero">
+        <p class="hero-label" data-i18n="total_label">Estimated total</p>
+        <p class="hero-amount"><span class="hero-cur">Rs</span><span class="tnum" id="total-value"></span></p>
+        <p class="hero-sub" id="effective-rate"></p>
+        <p class="hero-caption tnum" id="bill-head-line"></p>
+      </div>
+
+      <div class="bill-body">
+        <div id="bill-items"></div>
+        <div class="bill-total" id="bill-total-row"></div>
+        <div id="warnings"></div>
+      </div>
+
+      <div class="tiles solar-strip" id="solar-strip" hidden>
+        <div class="tile"><span data-i18n="solar_with">Bill with solar</span><b id="solar-with" class="tnum"></b></div>
+        <div class="tile"><span data-i18n="solar_without">Without solar</span><b id="solar-without" class="tnum"></b></div>
+        <div class="tile good"><span data-i18n="solar_saving">Monthly saving</span><b id="solar-saving" class="tnum"></b></div>
+        <div class="tile"><span data-i18n="solar_payback">Payback</span><b id="solar-payback" class="tnum"></b></div>
+      </div>
+
+      <button class="btn-primary" id="share-btn">
+        <svg aria-hidden="true"><use href="#i-share"/></svg>
+        <span data-i18n="share_btn">Copy WhatsApp summary</span>
+      </button>
     </section>
 
-    <!-- ============ cliff ============ -->
+    <!-- ============ the cliff ============ -->
     <section class="card cliff">
       <header class="card-head">
         <svg class="head-ic" aria-hidden="true"><use href="#i-trending-up"/></svg>
@@ -212,62 +183,49 @@
       </header>
       <div id="cliff-chart" class="chart-wrap"></div>
       <div class="tiles" id="cliff-grid">
-        <div class="tile"><span data-i18n="cliff_current_slab">Current slab</span><b id="cliff-slab" class="tnum"></b></div>
         <div class="tile"><span data-i18n="cliff_remaining">Units left</span><b id="cliff-remaining" class="tnum"></b></div>
         <div class="tile warn"><span data-i18n="cliff_crossing">Cost of crossing</span><b id="cliff-crossing" class="tnum"></b></div>
-        <div class="tile"><span data-i18n="cliff_next_unit">One more unit</span><b id="cliff-next-unit" class="tnum"></b></div>
       </div>
       <p class="note" id="cliff-top-note" hidden data-i18n="cliff_top">Top slab, no cliff above you.</p>
       <p class="note" id="cliff-note"></p>
     </section>
 
-    <!-- ============ budget + audit ============ -->
-    <section class="card tools">
-      <div class="tool">
-        <header class="card-head">
-          <svg class="head-ic" aria-hidden="true"><use href="#i-wallet"/></svg>
-          <h2 data-i18n="budget_title">Budget planner</h2>
-        </header>
-        <p class="tool-big tnum" id="budget-result"></p>
-      </div>
-      <div class="tool">
-        <header class="card-head">
-          <svg class="head-ic" aria-hidden="true"><use href="#i-search"/></svg>
-          <h2 data-i18n="audit_title">Audit your paper bill</h2>
-        </header>
-        <div id="audit-result" hidden></div>
-        <p class="audit-links">
-          <a id="helpline-link" href="tel:118"></a> ·
-          <a id="complaint-link" href="https://nepra.org.pk/complaints.php" target="_blank" rel="noopener" data-i18n="audit_file">Complain to NEPRA</a>
-        </p>
-      </div>
-    </section>
-
-    <!-- ============ solar ============ -->
-    <section class="card solar-card" id="solar-card" hidden>
+    <!-- ============ reality check: budget + audit ============ -->
+    <section class="card check">
       <header class="card-head">
-        <svg class="head-ic" aria-hidden="true"><use href="#i-sun"/></svg>
-        <h2 data-i18n="solar_title">Solar</h2>
+        <svg class="head-ic" aria-hidden="true"><use href="#i-wallet"/></svg>
+        <h2 data-i18n="check_title">Reality check</h2>
       </header>
-      <div class="tiles">
-        <div class="tile"><span data-i18n="solar_with">Bill with solar</span><b id="solar-with" class="tnum"></b></div>
-        <div class="tile"><span data-i18n="solar_without">Without solar</span><b id="solar-without" class="tnum"></b></div>
-        <div class="tile good"><span data-i18n="solar_saving">Monthly saving</span><b id="solar-saving" class="tnum"></b></div>
-        <div class="tile"><span data-i18n="solar_payback">Payback</span><b id="solar-payback" class="tnum"></b></div>
+      <div class="row">
+        <svg class="row-ic" aria-hidden="true"><use href="#i-wallet"/></svg>
+        <label class="row-label" for="budget-input" data-i18n="budget_label">My budget (Rs)</label>
+        <input type="number" id="budget-input" class="row-input tnum" min="0" step="500" value="20000">
       </div>
+      <p class="tool-big tnum" id="budget-result"></p>
+      <div class="check-divider"></div>
+      <div class="row">
+        <svg class="row-ic" aria-hidden="true"><use href="#i-receipt"/></svg>
+        <label class="row-label" for="actual-input" data-i18n="actual_bill_label">Actual bill (Rs)</label>
+        <input type="number" id="actual-input" class="row-input tnum" min="0" step="1">
+      </div>
+      <div id="audit-result" hidden></div>
+      <p class="audit-links">
+        <a id="helpline-link" href="tel:118"></a> ·
+        <a id="complaint-link" href="https://nepra.org.pk/complaints.php" target="_blank" rel="noopener" data-i18n="audit_file">Complain to NEPRA</a>
+      </p>
     </section>
 
   </main>
 
   <footer class="foot">
     <p class="foot-disclaimer" id="disclaimer"></p>
-    <p class="foot-meta"><span id="data-updated"></span> · <span data-i18n="offline_ready">Works offline</span>, MIT</p>
+    <p class="foot-meta"><span id="rates-chip"></span> · <span id="data-updated"></span> · <span data-i18n="offline_ready">Works offline</span>, MIT</p>
     <details class="sources">
       <summary><svg class="row-ic" aria-hidden="true"><use href="#i-info-circle"/></svg><span data-i18n="footer_sources">Tariff sources</span></summary>
       <ul id="source-list"></ul>
     </details>
   </footer>
 
-  <script type="module" src="js/main.js?v=0.3.4"></script>
+  <script type="module" src="js/main.js?v=0.3.5"></script>
 </body>
 </html>

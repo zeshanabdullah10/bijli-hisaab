@@ -46,6 +46,8 @@ export const STRINGS = {
     payback_never: 'No saving yet',
 
     total_label: 'Estimated total',
+    more_options: 'More options',
+    check_title: 'Reality check',
     effective_rate: 'Effective rate',
     per_unit: '/unit',
     breakdown_title: 'Your bill, line by line',
@@ -135,6 +137,8 @@ export const STRINGS = {
     payback_never: 'ابھی کوئی بچت نہیں',
 
     total_label: 'تخمینی کل',
+    more_options: 'مزید اختیارات',
+    check_title: 'حقیقت جانچیں',
     effective_rate: 'مؤثر شرح',
     per_unit: 'فی یونٹ',
     breakdown_title: 'آپ کا بل، سطر بہ سطر',
