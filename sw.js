@@ -2,7 +2,7 @@
 // load-shedding. App shell: cache-first; JSON data: stale-while-revalidate so
 // fresh tariff rates arrive in the background without blocking.
 
-const VERSION = 'bh-v0.3.0';
+const VERSION = 'bh-v0.3.1';
 const SHELL = [
   './',
   './index.html',
