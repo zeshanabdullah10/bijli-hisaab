@@ -169,7 +169,7 @@ test('solar net billing: imports billed in full at slabs, exports credited at bu
   assert.equal(sol.items.find((i) => i.id === 'energy').amount, round(300 * 33.10));
   const credit = sol.items.find((i) => i.id === 'solar_export');
   assert.equal(credit.amount, -1200);
-  assert.ok(credit.formula.includes('buyback'));
+  assert.ok(credit.formula.includes('off-peak'), 'formula names the register');
   // Credit excluded from GST base: GST must equal the no-solar GST.
   const plain = computeBill({ ...ctx, units: 300, consumerType: 'unprotected' });
   assert.equal(sol.items.find((i) => i.id === 'gst').amount, plain.items.find((i) => i.id === 'gst').amount);
@@ -183,6 +183,47 @@ test('solar net billing: credit larger than the bill floors the total at zero wi
   });
   assert.equal(sol.total, 0);
   assert.ok(sol.warnings.some((w) => /carries forward/.test(w)));
+});
+
+test('solar net metering nets PER REGISTER: peak export never offsets off-peak import', () => {
+  // Peak: 100 imports, 150 exports -> surplus 50 (rolls forward).
+  // Off-peak: 200 imports, 50 exports -> net 150.
+  const sol = computeBill({
+    ...ctx, units: 0, consumerType: 'unprotected',
+    solar: {
+      mode: 'net_metering',
+      importedUnits: 300, importedPeak: 100, importedOffPeak: 200,
+      exportedPeak: 150, exportedOffPeak: 50,
+    },
+  });
+  assert.equal(sol.items.find((i) => i.id === 'energy').amount, round(150 * 28.91), 'only the netted 150 off-peak units are billed');
+  assert.ok(sol.warnings.some((w) => /rolls forward/.test(w)), 'peak surplus must warn');
+  assert.equal(sol.effectiveRatePerUnit, round(sol.total / 300), 'effective rate uses total imports');
+});
+
+test('solar net billing credits peak and off-peak exports at their own rates', () => {
+  const sol = computeBill({
+    ...ctx, units: 0, consumerType: 'unprotected',
+    solar: {
+      mode: 'net_billing', importedUnits: 300,
+      exportedPeak: 100, exportedOffPeak: 100,
+      buybackPerUnit: 9, buybackPeakPerUnit: 15,
+    },
+  });
+  const credit = sol.items.find((i) => i.id === 'solar_export');
+  assert.equal(credit.amount, -round(100 * 15 + 100 * 9));
+  assert.ok(credit.formula.includes('peak') && credit.formula.includes('off-peak'), 'formula names both registers');
+});
+
+test('solar net billing: peak buyback falls back to the off-peak rate when omitted', () => {
+  const sol = computeBill({
+    ...ctx, units: 0, consumerType: 'unprotected',
+    solar: {
+      mode: 'net_billing', importedUnits: 300,
+      exportedPeak: 100, exportedOffPeak: 100, buybackPerUnit: 10,
+    },
+  });
+  assert.equal(sol.items.find((i) => i.id === 'solar_export').amount, -2000);
 });
 
 test('audit fixture — a fully worked bill stays consistent with its recorded total', () => {

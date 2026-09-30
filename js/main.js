@@ -18,11 +18,22 @@ const state = {
   solar: {
     enabled: localStorage.getItem('bh_solar') === '1',
     mode: localStorage.getItem('bh_solar_mode') || 'net_billing',
-    exported: Number(localStorage.getItem('bh_solar_exp')) || 0,
+    importedPeak: localStorage.getItem('bh_solar_imp_peak') || '',
+    importedOffPeak: localStorage.getItem('bh_solar_imp_off') || '',
+    exportedPeak: localStorage.getItem('bh_solar_exp_peak') || '',
+    exportedOffPeak: localStorage.getItem('bh_solar_exp_off') || '',
     buyback: localStorage.getItem('bh_solar_buyback') || '',
+    buybackPeak: localStorage.getItem('bh_solar_buyback_peak') || '',
     cost: localStorage.getItem('bh_solar_cost') || '',
   },
 };
+
+// When solar registers are filled, the total imports (state.units) is derived
+// as peak + off-peak and the manual units controls step aside.
+function registersActive() {
+  return state.solar.enabled
+    && (state.solar.importedPeak !== '' || state.solar.importedOffPeak !== '');
+}
 
 let tariff = null;
 let disco = null;
@@ -36,13 +47,17 @@ function persist() {
     bh_type: state.consumerType, bh_load: state.loadKw, bh_fpa: state.fpa,
     bh_atl: state.onATL ? '1' : '0', bh_actual: state.actual, bh_budget: state.budget,
     bh_theme: state.theme, bh_solar: state.solar.enabled ? '1' : '0',
-    bh_solar_mode: state.solar.mode, bh_solar_exp: state.solar.exported,
-    bh_solar_buyback: state.solar.buyback, bh_solar_cost: state.solar.cost,
+    bh_solar_mode: state.solar.mode,
+    bh_solar_imp_peak: state.solar.importedPeak, bh_solar_imp_off: state.solar.importedOffPeak,
+    bh_solar_exp_peak: state.solar.exportedPeak, bh_solar_exp_off: state.solar.exportedOffPeak,
+    bh_solar_buyback: state.solar.buyback, bh_solar_buyback_peak: state.solar.buybackPeak,
+    bh_solar_cost: state.solar.cost,
   };
   for (const [k, v] of Object.entries(flat)) localStorage.setItem(k, v);
 }
 
 function ctx(withSolar = true) {
+  const s = state.solar;
   return {
     tariff, disco,
     units: state.units,
@@ -51,12 +66,16 @@ function ctx(withSolar = true) {
     fpaOverride: state.fpa === '' ? null : Number(state.fpa),
     onATL: state.onATL,
     phase: 'single',
-    solar: withSolar && state.solar.enabled
+    solar: withSolar && s.enabled
       ? {
-          mode: state.solar.mode,
+          mode: s.mode,
           importedUnits: state.units,
-          exportedUnits: state.solar.exported,
-          buybackPerUnit: state.solar.buyback === '' ? undefined : Number(state.solar.buyback),
+          importedPeak: s.importedPeak === '' ? null : Number(s.importedPeak),
+          importedOffPeak: s.importedOffPeak === '' ? null : Number(s.importedOffPeak),
+          exportedPeak: s.exportedPeak === '' ? 0 : Number(s.exportedPeak),
+          exportedOffPeak: s.exportedOffPeak === '' ? 0 : Number(s.exportedOffPeak),
+          buybackPerUnit: s.buyback === '' ? undefined : Number(s.buyback),
+          buybackPeakPerUnit: s.buybackPeak === '' ? undefined : Number(s.buybackPeak),
         }
       : null,
   };
@@ -235,9 +254,19 @@ function renderResults() {
 
 function renderSolar() {
   const s = state.solar;
+  const nb = s.mode === 'net_billing';
   el('solar-panel').hidden = !s.enabled;
   el('solar-card').hidden = !s.enabled;
-  el('solar-buyback-row').hidden = s.mode !== 'net_billing';
+  el('solar-buyback-row').hidden = !nb;
+  el('solar-buyback-peak-row').hidden = !nb;
+
+  // With peak/off-peak registers filled, total imports is derived, so the
+  // manual units controls step aside.
+  const reg = registersActive();
+  el('units-input').readOnly = s.enabled && reg;
+  el('units-slider').disabled = s.enabled && reg;
+  el('units-plus').disabled = s.enabled && reg;
+  el('units-minus').disabled = s.enabled && reg;
   if (!s.enabled) return;
 
   const mode = tariff.solar.modes[s.mode];
@@ -386,18 +415,30 @@ function wire() {
     el('solar-mode-seg').style.setProperty('--active', [...smodes].indexOf(e.target));
     persist(); render();
   }));
-  el('solar-export-input').addEventListener('input', (e) => {
-    state.solar.exported = Math.max(0, Number(e.target.value) || 0);
-    persist(); renderResults(); renderChart();
-  });
-  el('solar-buyback-input').addEventListener('input', (e) => {
-    state.solar.buyback = e.target.value;
-    persist(); renderResults();
-  });
-  el('solar-cost-input').addEventListener('input', (e) => {
-    state.solar.cost = e.target.value;
-    persist(); renderResults();
-  });
+
+  // Peak/off-peak imports drive the derived total (units field).
+  const syncImportTotal = () => {
+    if (!registersActive()) return;
+    state.units = Math.min(2000,
+      (Number(state.solar.importedPeak) || 0) + (Number(state.solar.importedOffPeak) || 0));
+    el('units-input').value = state.units;
+    el('units-slider').value = Math.min(state.units, 1000);
+    setSliderFill();
+  };
+  const bindSolarInput = (id, key, after) => {
+    el(id).addEventListener('input', (e) => {
+      state.solar[key] = e.target.value;
+      if (after) after();
+      persist(); renderResults(); renderChart();
+    });
+  };
+  bindSolarInput('solar-imp-peak', 'importedPeak', syncImportTotal);
+  bindSolarInput('solar-imp-off', 'importedOffPeak', syncImportTotal);
+  bindSolarInput('solar-exp-peak', 'exportedPeak');
+  bindSolarInput('solar-exp-off', 'exportedOffPeak');
+  bindSolarInput('solar-buyback-input', 'buyback');
+  bindSolarInput('solar-buyback-peak', 'buybackPeak');
+  bindSolarInput('solar-cost-input', 'cost');
 }
 
 // ---------------------------------------------------------------- boot
@@ -436,8 +477,12 @@ async function boot() {
     smodeChecked.checked = true;
     el('solar-mode-seg').style.setProperty('--active', [...document.querySelectorAll('input[name=smode]')].indexOf(smodeChecked));
   }
-  el('solar-export-input').value = state.solar.exported;
+  el('solar-imp-peak').value = state.solar.importedPeak;
+  el('solar-imp-off').value = state.solar.importedOffPeak;
+  el('solar-exp-peak').value = state.solar.exportedPeak;
+  el('solar-exp-off').value = state.solar.exportedOffPeak;
   el('solar-buyback-input').value = state.solar.buyback;
+  el('solar-buyback-peak').value = state.solar.buybackPeak;
   el('solar-cost-input').value = state.solar.cost;
 
   // Footer source list from the tariff file, provenance stays visible.

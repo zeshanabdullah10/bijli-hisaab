@@ -472,6 +472,10 @@ svg { display: inline-block; vertical-align: -0.18em; }
 .step-btn:hover { color: var(--accent); }
 .step-btn:active { transform: scale(0.92); }
 .step-btn svg { width: 16px; height: 16px; }
+.step-btn:disabled { opacity: 0.35; cursor: default; }
+.step-btn:disabled:active { transform: none; }
+input[type="range"]:disabled { opacity: 0.35; cursor: default; }
+#units-input[readonly] { color: var(--text-2); }
 #units-input {
   width: 62px;
   border: none;

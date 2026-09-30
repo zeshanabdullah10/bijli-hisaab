@@ -9,7 +9,7 @@
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b0d0c">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=0.3.3">
+  <link rel="stylesheet" href="css/style.css?v=0.3.4">
   <script>
     // Theme flash guard: set data-theme before first paint.
     (function () {
@@ -152,22 +152,42 @@
         <p class="seg-note" id="solar-mode-note"></p>
         <div class="group">
           <div class="row">
-            <svg class="row-ic" aria-hidden="true"><use href="#i-share"/></svg>
-            <label class="row-label" for="solar-export-input" data-i18n="solar_exports_label">Exported to grid (kWh)</label>
-            <input type="number" id="solar-export-input" class="row-input tnum" min="0" max="5000" step="10" value="0">
-          </div>
-          <div class="row" id="solar-buyback-row">
-            <svg class="row-ic" aria-hidden="true"><use href="#i-wallet"/></svg>
-            <label class="row-label" for="solar-buyback-input" data-i18n="solar_buyback_label">Buyback (Rs/unit)</label>
-            <input type="number" id="solar-buyback-input" class="row-input tnum" min="0" max="50" step="0.01" placeholder="auto">
+            <svg class="row-ic" aria-hidden="true"><use href="#i-trending-up"/></svg>
+            <label class="row-label" for="solar-imp-peak" data-i18n="solar_imports_peak_label">Peak imports (kWh)</label>
+            <input type="number" id="solar-imp-peak" class="row-input tnum" min="0" max="5000" step="1" placeholder="0">
           </div>
           <div class="row">
             <svg class="row-ic" aria-hidden="true"><use href="#i-trending-up"/></svg>
+            <label class="row-label" for="solar-imp-off" data-i18n="solar_imports_off_label">Off-peak imports (kWh)</label>
+            <input type="number" id="solar-imp-off" class="row-input tnum" min="0" max="5000" step="1" placeholder="0">
+          </div>
+          <div class="row">
+            <svg class="row-ic" aria-hidden="true"><use href="#i-share"/></svg>
+            <label class="row-label" for="solar-exp-peak" data-i18n="solar_exports_peak_label">Exported at peak (kWh)</label>
+            <input type="number" id="solar-exp-peak" class="row-input tnum" min="0" max="5000" step="1" placeholder="0">
+          </div>
+          <div class="row">
+            <svg class="row-ic" aria-hidden="true"><use href="#i-share"/></svg>
+            <label class="row-label" for="solar-exp-off" data-i18n="solar_exports_off_label">Exported off-peak (kWh)</label>
+            <input type="number" id="solar-exp-off" class="row-input tnum" min="0" max="5000" step="1" placeholder="0">
+          </div>
+          <div class="row" id="solar-buyback-row">
+            <svg class="row-ic" aria-hidden="true"><use href="#i-wallet"/></svg>
+            <label class="row-label" for="solar-buyback-input" data-i18n="solar_buyback_label">Off-peak buyback (Rs/unit)</label>
+            <input type="number" id="solar-buyback-input" class="row-input tnum" min="0" max="50" step="0.01" placeholder="auto">
+          </div>
+          <div class="row" id="solar-buyback-peak-row">
+            <svg class="row-ic" aria-hidden="true"><use href="#i-wallet"/></svg>
+            <label class="row-label" for="solar-buyback-peak" data-i18n="solar_buyback_peak_label">Peak buyback (Rs/unit)</label>
+            <input type="number" id="solar-buyback-peak" class="row-input tnum" min="0" max="50" step="0.01" placeholder="auto">
+          </div>
+          <div class="row">
+            <svg class="row-ic" aria-hidden="true"><use href="#i-wallet"/></svg>
             <label class="row-label" for="solar-cost-input" data-i18n="solar_cost_label">System cost (Rs)</label>
             <input type="number" id="solar-cost-input" class="row-input tnum" min="0" max="10000000" step="10000" placeholder="0">
           </div>
         </div>
-        <p class="group-hint" data-i18n="solar_hint">Read imports and exports off your net-metering statement. The units field above is your grid import.</p>
+        <p class="group-hint" data-i18n="solar_hint">Read the peak and off-peak registers off your net-metering statement. Total grid imports above update automatically as peak + off-peak.</p>
       </div>
 
     </section>
@@ -248,6 +268,6 @@
     </details>
   </footer>
 
-  <script type="module" src="js/main.js?v=0.3.3"></script>
+  <script type="module" src="js/main.js?v=0.3.4"></script>
 </body>
 </html>

@@ -90,9 +90,15 @@ export function effectiveConsumerType(tariff, consumerType, units, warnings = []
  * @param {boolean} [p.onATL=true] consumer on the Active Taxpayer List (filer)
  * @param {'single'|'three'} [p.phase='single']  meter phase (minimum charge)
  * @param {object|null} [p.solar]  rooftop solar:
- *   { mode: 'net_metering'|'net_billing', importedUnits, exportedUnits, buybackPerUnit }
- *   net_metering: exports offset imports 1:1 before slabs (grandfathered agreements).
- *   net_billing:  imports billed in full at slab rates, exports credited at the buyback rate.
+ *   { mode: 'net_metering'|'net_billing', importedUnits, exportedUnits,
+ *     importedPeak, importedOffPeak, exportedPeak, exportedOffPeak,
+ *     buybackPerUnit, buybackPeakPerUnit }
+ *   net_metering: exports offset imports 1:1, PER REGISTER when peak/off-peak
+ *   registers are given (peak export never offsets off-peak import); excess
+ *   export rolls forward as a unit credit (grandfathered agreements).
+ *   net_billing:  imports billed in full at slab rates, exports credited at
+ *   the buyback rate per register (peak rate defaults to the off-peak rate
+ *   when not supplied).
  * @returns {{items: Array, total: number, totalBeforeIncomeTax: number, effectiveRatePerUnit: number, warnings: string[]}}
  */
 export function computeBill(p) {
@@ -106,13 +112,32 @@ export function computeBill(p) {
   let importedUnits = unitsIn;
   if (solar) {
     importedUnits = solar.importedUnits ?? unitsIn;
-    const exported = solar.exportedUnits || 0;
+    const expPeak = solar.exportedPeak || 0;
+    const expOff = solar.exportedOffPeak ?? solar.exportedUnits ?? 0;
+    const hasRegisters = solar.importedPeak != null || solar.importedOffPeak != null;
+
     if (solar.mode === 'net_metering') {
-      units = Math.max(0, importedUnits - exported);
-      if (exported > importedUnits) {
-        warnings.push(
-          `You exported ${Math.round(exported - importedUnits)} more units than you imported. Under net metering the difference rolls forward to future bills as a unit credit, not cash.`,
-        );
+      if (hasRegisters) {
+        // Register-wise netting: a peak export only cancels a peak import.
+        const impPeak = solar.importedPeak || 0;
+        const impOff = solar.importedOffPeak || 0;
+        const surplusPeak = Math.max(0, expPeak - impPeak);
+        const surplusOff = Math.max(0, expOff - impOff);
+        units = Math.max(0, impPeak - expPeak) + Math.max(0, impOff - expOff);
+        const surplus = surplusPeak + surplusOff;
+        if (surplus > 0) {
+          warnings.push(
+            `You exported ${Math.round(surplus)} more units than you imported in the same register${surplusPeak > 0 && surplusOff > 0 ? 's' : ''}. Under net metering the difference rolls forward to future bills as a unit credit, not cash.`,
+          );
+        }
+      } else {
+        const exported = expPeak + expOff;
+        units = Math.max(0, importedUnits - exported);
+        if (exported > importedUnits) {
+          warnings.push(
+            `You exported ${Math.round(exported - importedUnits)} more units than you imported. Under net metering the difference rolls forward to future bills as a unit credit, not cash.`,
+          );
+        }
       }
     } else {
       units = importedUnits;
@@ -219,16 +244,24 @@ export function computeBill(p) {
 
   // --- 7b. Solar export credit (net billing) -----------------------------------
   // Exports are bought back at the reference price and credited separately;
-  // they do not enter the GST base.
+  // they do not enter the GST base. Peak and off-peak registers earn their
+  // own rates; the peak rate falls back to the off-peak/default rate.
   if (solar && solar.mode === 'net_billing') {
-    const exported = solar.exportedUnits || 0;
-    if (exported > 0) {
-      const buyback = solar.buybackPerUnit ?? tariff.solar.modes.net_billing.buyback_per_kwh;
+    const expPeak = solar.exportedPeak || 0;
+    const expOff = solar.exportedOffPeak ?? solar.exportedUnits ?? 0;
+    if (expPeak > 0 || expOff > 0) {
+      const defaultRate = tariff.solar.modes.net_billing.buyback_per_kwh;
+      const offRate = solar.buybackPerUnit ?? defaultRate;
+      const peakRate = solar.buybackPeakPerUnit ?? offRate;
+      const credit = round2(expPeak * peakRate + expOff * offRate);
+      const parts = [];
+      if (expPeak > 0) parts.push(`${Math.round(expPeak)} peak × Rs ${peakRate.toFixed(2)}`);
+      if (expOff > 0) parts.push(`${Math.round(expOff)} off-peak × Rs ${offRate.toFixed(2)}`);
       items.push({
         id: 'solar_export', kind: 'credit',
         name_en: tariff.solar.credit_name_en, name_ur: tariff.solar.credit_name_ur,
-        amount: -round2(exported * buyback),
-        formula: `${Math.round(exported)} units exported × Rs ${buyback.toFixed(2)} buyback (credited against this bill)`,
+        amount: -credit,
+        formula: `${parts.join('  +  ')} units exported (credited against this bill)`,
         source: src(tariff.solar.source),
       });
     }

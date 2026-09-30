@@ -144,8 +144,8 @@
       },
       "net_billing": {
         "buyback_per_kwh": 10.0,
-        "note_en": "Prosumer Regulations 2026 (new connections): grid imports are billed at the full slab rate and exports are paid separately at the reference buyback price, reported between Rs 8.13 and Rs 11 per unit. Enter your agreement's exact rate.",
-        "note_ur": "پروسومر ریگولیشنز 2026 (نئے کنکشن): درآمدیات پوری سلیب شرح پر بل ہوتی ہیں اور ایکسپورٹ الگ سے حوالہ شرح پر خریدی جاتی ہیں، جو 8.13 سے 11 روپے فی یونٹ بتائی جاتی ہے۔ اپنے معاہدے کی درست شرح درج کریں۔",
+        "note_en": "Prosumer Regulations 2026 (new connections): grid imports are billed at the full slab rate and exports are paid separately at the reference buyback price, reported between Rs 8.13 and Rs 11 per unit. Peak and off-peak registers earn their own rates - enter both from your agreement; when the peak rate is left blank the off-peak rate applies.",
+        "note_ur": "پروسومر ریگولیشنز 2026 (نئے کنکشن): درآمدیات پوری سلیب شرح پر بل ہوتی ہیں اور ایکسپورٹ الگ سے حوالہ شرح پر خریدی جاتی ہے، جو 8.13 سے 11 روپے فی یونٹ بتائی جاتی ہے۔ پیک اور آف پیک ریجسٹرز کی اپنی شرحیں ہیں - دونوں اپنے معاہدے سے درج کریں۔",
         "source": "solar_reg"
       }
     },
