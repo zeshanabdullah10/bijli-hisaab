@@ -2,7 +2,7 @@
 // load-shedding. App shell: cache-first; JSON data: stale-while-revalidate so
 // fresh tariff rates arrive in the background without blocking.
 
-const VERSION = 'bh-v0.3.1';
+const VERSION = 'bh-v0.3.2';
 const SHELL = [
   './',
   './index.html',
@@ -40,8 +40,8 @@ self.addEventListener('fetch', (e) => {
     // stale-while-revalidate: serve cached rates instantly, refresh behind.
     e.respondWith(
       caches.open(VERSION).then(async (cache) => {
-        const cached = await cache.match(e.request);
-        const fresh = fetch(e.request).then((res) => {
+        const cached = await cache.match(e.request, { ignoreSearch: true });
+        const fresh = fetch(e.request, { cache: 'no-cache' }).then((res) => {
           if (res.ok) cache.put(e.request, res.clone());
           return res;
         }).catch(() => cached);
@@ -52,8 +52,10 @@ self.addEventListener('fetch', (e) => {
   }
 
   // App shell: network-first so deploys reach users, cache fallback offline.
+  // cache:'no-cache' revalidates with the server (304 when unchanged) instead
+  // of trusting the HTTP cache's max-age, so new deploys are seen instantly.
   e.respondWith(
-    fetch(e.request).then((res) => {
+    fetch(e.request, { cache: 'no-cache' }).then((res) => {
       if (res.ok) {
         const clone = res.clone();
         caches.open(VERSION).then((c) => c.put(e.request, clone));
