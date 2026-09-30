@@ -1,6 +1,6 @@
 {
   "name": "bijli-hisaab",
-  "version": "0.1.0",
+  "version": "0.3.3",
   "description": "Your electricity bill, translated — slab calculator and line-by-line decoder for Pakistani domestic consumers. Static, offline-capable, bilingual.",
   "type": "module",
   "private": true,
