@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>BijliHisaab — your electricity bill, translated</title>
+  <title>BijliHisaab: your electricity bill, translated</title>
   <meta name="description" content="Line-by-line decoder and slab-cliff calculator for Pakistani domestic electricity bills (LESCO). Bilingual, offline-capable, open data.">
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f3f0">
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b0d0c">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=0.3.2">
+  <link rel="stylesheet" href="css/style.css?v=0.3.3">
   <script>
     // Theme flash guard: set data-theme before first paint.
     (function () {
@@ -71,10 +71,10 @@
     <!-- ============ hero: the number ============ -->
     <section class="card hero" aria-labelledby="total-value">
       <p class="hero-label" data-i18n="total_label">Estimated total</p>
-      <p class="hero-amount"><span class="hero-cur">Rs</span><span class="tnum" id="total-value">—</span></p>
-      <p class="hero-sub" id="effective-rate">—</p>
+      <p class="hero-amount"><span class="hero-cur">Rs</span><span class="tnum" id="total-value"></span></p>
+      <p class="hero-sub" id="effective-rate"></p>
       <div class="hero-meta" id="bill-head-line"></div>
-      <button class="btn btn-primary" id="share-btn">
+      <button class="btn-primary" id="share-btn">
         <svg aria-hidden="true"><use href="#i-share"/></svg>
         <span data-i18n="share_btn">Copy WhatsApp summary</span>
       </button>
@@ -83,7 +83,7 @@
     <!-- ============ inputs ============ -->
     <section class="card panel" aria-label="inputs">
 
-      <div class="seg" id="ctype-seg" data-active="0" role="radiogroup" aria-label="Consumer type">
+      <div class="seg" id="ctype-seg" role="radiogroup" aria-label="Consumer type">
         <span class="seg-thumb" aria-hidden="true"></span>
         <label class="seg-item"><input type="radio" name="ctype" value="unprotected" checked><span data-i18n="type_unprotected">Unprotected</span></label>
         <label class="seg-item"><input type="radio" name="ctype" value="protected"><span data-i18n="type_protected">Protected</span></label>
@@ -138,7 +138,7 @@
         <div class="row">
           <svg class="row-ic" aria-hidden="true"><use href="#i-receipt"/></svg>
           <label class="row-label" for="actual-input" data-i18n="actual_bill_label">Actual bill (Rs)</label>
-          <input type="number" id="actual-input" class="row-input tnum" min="0" step="1" placeholder="—">
+          <input type="number" id="actual-input" class="row-input tnum" min="0" step="1">
         </div>
       </div>
       <p class="group-hint" data-i18n="fpa_hint">Bills print the exact FPA rate. Leave empty to use the latest documented value.</p>
@@ -192,10 +192,10 @@
       </header>
       <div id="cliff-chart" class="chart-wrap"></div>
       <div class="tiles" id="cliff-grid">
-        <div class="tile"><span data-i18n="cliff_current_slab">Current slab</span><b id="cliff-slab" class="tnum">—</b></div>
-        <div class="tile"><span data-i18n="cliff_remaining">Units left</span><b id="cliff-remaining" class="tnum">—</b></div>
-        <div class="tile warn"><span data-i18n="cliff_crossing">Cost of crossing</span><b id="cliff-crossing" class="tnum">—</b></div>
-        <div class="tile"><span data-i18n="cliff_next_unit">One more unit</span><b id="cliff-next-unit" class="tnum">—</b></div>
+        <div class="tile"><span data-i18n="cliff_current_slab">Current slab</span><b id="cliff-slab" class="tnum"></b></div>
+        <div class="tile"><span data-i18n="cliff_remaining">Units left</span><b id="cliff-remaining" class="tnum"></b></div>
+        <div class="tile warn"><span data-i18n="cliff_crossing">Cost of crossing</span><b id="cliff-crossing" class="tnum"></b></div>
+        <div class="tile"><span data-i18n="cliff_next_unit">One more unit</span><b id="cliff-next-unit" class="tnum"></b></div>
       </div>
       <p class="note" id="cliff-top-note" hidden data-i18n="cliff_top">Top slab, no cliff above you.</p>
       <p class="note" id="cliff-note"></p>
@@ -208,7 +208,7 @@
           <svg class="head-ic" aria-hidden="true"><use href="#i-wallet"/></svg>
           <h2 data-i18n="budget_title">Budget planner</h2>
         </header>
-        <p class="tool-big tnum" id="budget-result">—</p>
+        <p class="tool-big tnum" id="budget-result"></p>
       </div>
       <div class="tool">
         <header class="card-head">
@@ -230,25 +230,24 @@
         <h2 data-i18n="solar_title">Solar</h2>
       </header>
       <div class="tiles">
-        <div class="tile"><span data-i18n="solar_with">Bill with solar</span><b id="solar-with" class="tnum">—</b></div>
-        <div class="tile"><span data-i18n="solar_without">Without solar</span><b id="solar-without" class="tnum">—</b></div>
-        <div class="tile good"><span data-i18n="solar_saving">Monthly saving</span><b id="solar-saving" class="tnum">—</b></div>
-        <div class="tile"><span data-i18n="solar_payback">Payback</span><b id="solar-payback" class="tnum">—</b></div>
+        <div class="tile"><span data-i18n="solar_with">Bill with solar</span><b id="solar-with" class="tnum"></b></div>
+        <div class="tile"><span data-i18n="solar_without">Without solar</span><b id="solar-without" class="tnum"></b></div>
+        <div class="tile good"><span data-i18n="solar_saving">Monthly saving</span><b id="solar-saving" class="tnum"></b></div>
+        <div class="tile"><span data-i18n="solar_payback">Payback</span><b id="solar-payback" class="tnum"></b></div>
       </div>
-      <p class="note" id="solar-note"></p>
     </section>
 
   </main>
 
   <footer class="foot">
     <p class="foot-disclaimer" id="disclaimer"></p>
-    <p class="foot-meta"><span id="data-updated"></span> · <span data-i18n="offline_ready">Works offline</span> · MIT</p>
+    <p class="foot-meta"><span id="data-updated"></span> · <span data-i18n="offline_ready">Works offline</span>, MIT</p>
     <details class="sources">
       <summary><svg class="row-ic" aria-hidden="true"><use href="#i-info-circle"/></svg><span data-i18n="footer_sources">Tariff sources</span></summary>
       <ul id="source-list"></ul>
     </details>
   </footer>
 
-  <script type="module" src="js/main.js?v=0.3.2"></script>
+  <script type="module" src="js/main.js?v=0.3.3"></script>
 </body>
 </html>

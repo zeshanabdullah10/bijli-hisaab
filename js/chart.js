@@ -28,8 +28,11 @@ export function renderCliffChart({ host, ctx, consumerType, units, t, onDrag }) 
     const lo = i === 0 ? 0 : bounds[i - 1];
     xs.push(Math.floor((lo + bounds[i]) / 2));
   }
-  xs.sort((a, b) => a - b);
+  // The current-units point must join the sorted sample list BEFORE sorting:
+  // appended afterwards it becomes the polyline's last vertex and the path
+  // draws a straight segment backwards from the right edge to the marker.
   if (!xs.includes(units)) xs.push(units);
+  xs.sort((a, b) => a - b);
 
   const pts = xs.map((u) => [px(u), py(billAt(u))]);
   const linePath = 'M' + pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' L');
@@ -48,17 +51,19 @@ export function renderCliffChart({ host, ctx, consumerType, units, t, onDrag }) 
   const yHere = py(billAt(units));
   const xHere = px(units);
   const flipLabel = xHere > W - 110;
+  const pillText = `Rs ${fmt(billAt(units))}`;
+  const pillW = pillText.length * 6.4 + 18;
   const marker = `
     <line x1="${xHere}" y1="${yHere}" x2="${xHere}" y2="${M.top + ih}" stroke="var(--chart-line)" stroke-width="1" opacity="0.35"/>
     <circle cx="${xHere}" cy="${yHere}" r="9" fill="var(--chart-line)" opacity="0.18"/>
     <circle cx="${xHere}" cy="${yHere}" r="5" fill="var(--chart-line)" stroke="var(--surface)" stroke-width="2.5"/>
     <g transform="translate(${flipLabel ? xHere - 14 : xHere + 14}, ${Math.max(M.top + 8, yHere - 14)})">
-      <rect x="${flipLabel ? -66 : 0}" y="-13" width="66" height="19" rx="9.5" fill="var(--text)" opacity="0.88"/>
-      <text x="${flipLabel ? -33 : 33}" y="0.5" text-anchor="middle" dominant-baseline="middle" font-size="10.5" font-weight="700" fill="var(--surface)">Rs ${fmt(billAt(units))}</text>
+      <rect x="${flipLabel ? -pillW : 0}" y="-13" width="${pillW}" height="19" rx="9.5" fill="var(--text)" opacity="0.88"/>
+      <text x="${flipLabel ? -pillW / 2 : pillW / 2}" y="0.5" text-anchor="middle" dominant-baseline="middle" font-size="10.5" font-weight="700" fill="var(--surface)">${pillText}</text>
     </g>`;
 
   host.innerHTML = `
-    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${t('cliff_title')}, ${units} units">
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${t('cliff_title')}: ${units}">
       <defs>
         <linearGradient id="bh-area" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="var(--chart-fill-a)"/>

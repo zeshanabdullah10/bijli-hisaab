@@ -109,6 +109,8 @@ function applyStaticTexts() {
   // Units label becomes "grid imports" when solar is on.
   document.querySelector('label[for="units-input"]').textContent =
     state.solar.enabled ? t('solar_imports_label') : t('units_label');
+  el('units-input').setAttribute('aria-label', state.solar.enabled ? t('solar_imports_label') : t('units_label'));
+  el('units-slider').setAttribute('aria-label', state.solar.enabled ? t('solar_imports_label') : t('units_label'));
 }
 
 const CLUSTER_DEFS = () => {
@@ -143,40 +145,35 @@ function renderResults() {
     <span class="chip tnum">${cliff.slabLabel}</span>`;
 
   // Bill breakdown, clustered like a statement
+  const lineHTML = (item) => `
+    <details class="bill-line kind-${item.kind}" data-id="${item.id}">
+      <summary>
+        <span class="line-name${ur ? ' ur' : ''}">${ur ? item.name_ur : item.name_en}</span>
+        <span class="line-amt tnum">${item.amount < 0 ? '− ' : ''}Rs ${fmt(Math.abs(item.amount))}</span>
+        <svg class="line-chev" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+      </summary>
+      <div class="line-detail">
+        <p class="formula">${item.formula}</p>
+        ${item.source ? `<a href="${item.source}" target="_blank" rel="noopener">${t('source')} <svg aria-hidden="true"><use href="#i-external-link"/></svg></a>` : ''}
+      </div>
+    </details>`;
+
   const clusters = CLUSTER_DEFS().map((cd) => {
     const items = bill.items.filter((i) => cd.ids.includes(i.id));
     if (!items.length) return '';
     const subtotal = items.reduce((a, i) => a + i.amount, 0);
     return `<div class="cluster">
       <p class="cluster-label${ur ? ' ur' : ''}">${cd.label}</p>
-      ${items.map((item) => `
-        <details class="bill-line kind-${item.kind}" data-id="${item.id}">
-          <summary>
-            <span class="line-name${ur ? ' ur' : ''}">${ur ? item.name_ur : item.name_en}</span>
-            <span class="line-amt tnum">${item.amount < 0 ? '− ' : ''}Rs ${fmt(Math.abs(item.amount))}</span>
-            <svg class="line-chev" aria-hidden="true"><use href="#i-chevron-down"/></svg>
-          </summary>
-          <div class="line-detail">
-            <p class="formula">${item.formula}</p>
-            ${item.source ? `<a href="${item.source}" target="_blank" rel="noopener">${t('source')} <svg aria-hidden="true"><use href="#i-external-link"/></svg></a>` : ''}
-          </div>
-        </details>`).join('')}
+      ${items.map(lineHTML).join('')}
       <div class="cluster-sub"><span${ur ? ' class="ur"' : ''}>${t('cluster_subtotal')}</span><span class="tnum">Rs ${fmt(subtotal)}</span></div>
     </div>`;
   }).join('');
 
+  // Defensive: anything not covered by a cluster still renders, same style.
   const known = CLUSTER_DEFS().flatMap((c) => c.ids);
   const leftover = bill.items.filter((i) => !known.includes(i.id));
   const extra = leftover.length
-    ? `<div class="cluster">${leftover.map((item) => `
-        <details class="bill-line kind-${item.kind}" data-id="${item.id}">
-          <summary>
-            <span class="line-name${ur ? ' ur' : ''}">${ur ? item.name_ur : item.name_en}</span>
-            <span class="line-amt tnum">${item.amount < 0 ? '− ' : ''}Rs ${fmt(Math.abs(item.amount))}</span>
-            <svg class="line-chev" aria-hidden="true"><use href="#i-chevron-down"/></svg>
-          </summary>
-          <div class="line-detail"><p class="formula">${item.formula}</p></div>
-        </details>`).join('')}</div>`
+    ? `<div class="cluster"><p class="cluster-label${ur ? ' ur' : ''}">${t('cluster_taxes')}</p>${leftover.map(lineHTML).join('')}</div>`
     : '';
 
   el('bill-items').innerHTML = clusters + extra;
@@ -321,7 +318,6 @@ async function copyShare() {
     ta.remove();
   }
   const span = btn.querySelector('span');
-  btn.classList.add('copied');
   span.textContent = `✓ ${t('copied')}`;
   setTimeout(() => { span.textContent = t('share_btn'); }, 1600);
 }
