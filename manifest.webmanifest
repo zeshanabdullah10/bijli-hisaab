@@ -1,0 +1,15 @@
+{
+  "name": "BijliHisaab — bill decoder",
+  "short_name": "BijliHisaab",
+  "description": "Your electricity bill, translated. Slab calculator and line-by-line decoder for Pakistani domestic bills.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#faf7ee",
+  "theme_color": "#0b5c3f",
+  "lang": "en",
+  "dir": "auto",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

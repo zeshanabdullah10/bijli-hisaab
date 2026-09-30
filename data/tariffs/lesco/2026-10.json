@@ -1,0 +1,131 @@
+{
+  "disco": "lesco",
+  "period_label": "2026-10",
+  "effective_date": "2026-02-12",
+  "verified_on": "2026-10-01",
+  "currency": "PKR",
+  "sources": [
+    {
+      "id": "sro279",
+      "title": "SRO 279(I)/2026 domestic slab rates, fixed charges, lifeline & minimum charges (via BijliBills NEPRA Tariff 2026 Explained)",
+      "url": "https://bijlibills.com/nepra-tariff-2026-explained/"
+    },
+    {
+      "id": "bco",
+      "title": "BillsCheckOnline — LESCO unit price Sept 2026, 200-unit/6-month protection rule, non-filer income tax rule",
+      "url": "https://billscheckonline.pk"
+    },
+    {
+      "id": "mepco_tax",
+      "title": "MEPCO bill tax guide — GST 18%, electricity duty 1.5% (Punjab), TV licence fee Rs 35 (verified against worked bill example)",
+      "url": "https://mymepcobill.com"
+    },
+    {
+      "id": "qta_sep26",
+      "title": "NEPRA Quarterly Tariff Adjustment +Rs 0.52/unit for Sept–Nov 2026 (as reported by Business Recorder); QTA Jun–Aug 2026 was a credit of Rs 1.9857/unit",
+      "url": "https://www.facebook.com/BusinessRecorder/posts/1514318160722644/"
+    },
+    {
+      "id": "fca_jun26",
+      "title": "NEPRA Fuel Charges Adjustment for June 2026: +Rs 0.7503/unit, ex-WAPDA DISCOs (as reported by Business Recorder)",
+      "url": "https://www.facebook.com/BusinessRecorder/posts/1511700014317792/"
+    },
+    {
+      "id": "nepra",
+      "title": "NEPRA official tariff determinations (authoritative source for updates)",
+      "url": "https://nepra.org.pk"
+    }
+  ],
+  "caveats": [
+    "Fixed charges per kW face a pending review petition before NEPRA and may change before the 15 Jan 2027 rebasing.",
+    "FPA/FCA changes every month and is billed ~2 months in arrears; the value here is the latest documented one. Your paper bill prints the exact FPA — enter it in the FPA field for an accurate audit.",
+    "Electricity duty is set provincially; 1.5% verified for Punjab. Other provinces differ.",
+    "Estimated totals should match a real bill within a few percent; arrears, meter rent, municipal taxes and estimated readings are not modelled."
+  ],
+  "consumer_classes": {
+    "domestic": {
+      "unprotected": {
+        "billing_mode": "landing_slab",
+        "mode_note_en": "All units are billed at the rate of the slab your total lands in (this is what creates the famous cliff).",
+        "mode_note_ur": "پوری کھپت اُس سلیب کی شرح پر بل ہوتی ہے جس میں آپ کا کل جمع ہوتا ہے۔",
+        "slabs": [
+          { "up_to": 100, "rate": 22.44, "fixed_per_kw": 275 },
+          { "up_to": 200, "rate": 28.91, "fixed_per_kw": 300 },
+          { "up_to": 300, "rate": 33.10, "fixed_per_kw": 350 },
+          { "up_to": 400, "rate": 36.46, "fixed_per_kw": 400 },
+          { "up_to": 500, "rate": 38.95, "fixed_per_kw": 500 },
+          { "up_to": 600, "rate": 40.22, "fixed_per_kw": 675 },
+          { "up_to": 700, "rate": 41.85, "fixed_per_kw": 675 },
+          { "up_to": null, "rate": 47.20, "fixed_per_kw": 675 }
+        ]
+      },
+      "protected": {
+        "billing_mode": "telescopic",
+        "eligibility_en": "Stay at or under 200 units for 6 consecutive months. Cross 200 once and that whole month is billed as unprotected, and protection is lost for the next 6 months.",
+        "eligibility_ur": "مسلسل چھ مہینوں تک 200 یونٹس یا اس سے کم رکھیں۔ ایک بار 200 سے اوپر گئے تو اُس مہینے کا پورا بل غیر محفوظ شرح پر ہوگا اور چھ مہینے کے لیے حفاظت ختم۔",
+        "slabs": [
+          { "up_to": 100, "rate": 10.54, "fixed_per_kw": 200 },
+          { "up_to": 200, "rate": 13.01, "fixed_per_kw": 300 }
+        ]
+      },
+      "lifeline": {
+        "billing_mode": "landing_slab",
+        "eligibility_en": "At or under 100 units for 12 months. Exempt from fixed charge, FCA and financing-cost surcharge.",
+        "eligibility_ur": "بارہ مہینے تک 100 یونٹس یا اس سے کم۔ ثابت چارج، ایف سی اے اور فنانسنگ سرچارج سے مستثنیٰ۔",
+        "slabs": [
+          { "up_to": 50, "rate": 3.95, "fixed_per_kw": 0 },
+          { "up_to": 100, "rate": 7.74, "fixed_per_kw": 0 }
+        ]
+      }
+    }
+  },
+  "minimum_charge": { "single_phase": 75, "three_phase": 150 },
+  "surcharges_per_kwh": [
+    {
+      "id": "fc_surcharge",
+      "name_en": "Financing cost surcharge",
+      "name_ur": "فنانسنگ لاگت سرچارج",
+      "rate": 3.23,
+      "exempt_consumer_types": ["lifeline"],
+      "source": "sro279"
+    }
+  ],
+  "adjustments_per_kwh": [
+    {
+      "id": "qta",
+      "name_en": "Quarterly Tariff Adjustment (Sept–Nov 2026)",
+      "name_ur": "سہ ماہی ٹیرف ایڈجسٹمنٹ",
+      "rate": 0.52,
+      "exempt_consumer_types": ["lifeline"],
+      "source": "qta_sep26"
+    },
+    {
+      "id": "fpa",
+      "name_en": "FPA / Fuel Charges Adjustment (June 2026 FCA, latest documented)",
+      "name_ur": "ایف پی اے — ایندھن لاگت ایڈجسٹمنٹ",
+      "rate": 0.7503,
+      "user_override": true,
+      "exempt_consumer_types": ["lifeline"],
+      "source": "fca_jun26"
+    }
+  ],
+  "fees": {
+    "tv_license": { "amount": 35, "consumer_types": ["unprotected", "protected", "lifeline"], "source": "mepco_tax" }
+  },
+  "taxes": {
+    "electricity_duty": { "mode": "from_disco", "source": "mepco_tax" },
+    "gst": {
+      "rate_pct": 18,
+      "base": ["energy", "fixed", "electricity_duty", "fc_surcharge", "qta", "fpa"],
+      "source": "mepco_tax"
+    },
+    "income_tax": {
+      "mode": "non_atl",
+      "threshold": 25000,
+      "rate_pct": 7.5,
+      "applies_above_threshold_of": "total_before_income_tax",
+      "note": "Non-filers pay 7.5% income tax on home bills of Rs 25,000 or more; ATL filers pay none.",
+      "source": "bco"
+    }
+  }
+}

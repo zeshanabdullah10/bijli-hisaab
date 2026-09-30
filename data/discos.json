@@ -1,0 +1,22 @@
+{
+  "_note": "Distribution companies supported by BijliHisaab. Add a DISCO by adding an entry here plus tariff files under data/tariffs/<id>/. Every rate must cite a source.",
+  "discos": [
+    {
+      "id": "lesco",
+      "name_en": "LESCO",
+      "name_ur": "لیسکو",
+      "full_name_en": "Lahore Electric Supply Company",
+      "region_en": "Punjab",
+      "region_ur": "پنجاب",
+      "helpline": "118",
+      "website": "https://lesco.gov.pk",
+      "regulator_complaints": "https://nepra.org.pk/complaints.php",
+      "electricity_duty": {
+        "mode": "percent_of_charges",
+        "rate_pct": 1.5,
+        "base": ["energy", "fixed"],
+        "note": "Punjab electricity duty. Verified arithmetically against a published MEPCO bill (Rs 23.02 on Rs 1,534.47 = exactly 1.5%)."
+      }
+    }
+  ]
+}

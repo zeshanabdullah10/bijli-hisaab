@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BijliHisaab — your electricity bill, translated</title>
+  <meta name="description" content="Line-by-line decoder and slab-cliff calculator for Pakistani domestic electricity bills (LESCO). Bilingual, offline-capable, open data.">
+  <meta name="theme-color" content="#0b5c3f">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+
+    <header class="masthead">
+      <div class="masthead-inner">
+        <div class="brand-block">
+          <img src="icon.svg" alt="" class="brand-icon" width="44" height="44">
+          <div>
+            <h1 class="brand" data-i18n="brand">BijliHisaab</h1>
+            <p class="tagline" data-i18n="tagline">Your electricity bill, translated.</p>
+          </div>
+        </div>
+        <div class="masthead-actions">
+          <span class="chip" id="rates-chip"></span>
+          <button id="lang-toggle" class="btn ghost" data-i18n="lang_toggle">اردو</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout">
+
+      <!-- ======================= controls ======================= -->
+      <section class="card controls" aria-label="inputs">
+        <div class="field">
+          <label for="units-input" data-i18n="units_label">Monthly units (kWh)</label>
+          <div class="units-row">
+            <input type="number" id="units-input" min="0" max="2000" step="1" value="300">
+            <input type="range" id="units-slider" min="0" max="1000" step="1" value="300" aria-label="units slider">
+          </div>
+        </div>
+
+        <fieldset class="field">
+          <legend data-i18n="consumer_type">Consumer type</legend>
+          <div class="type-row" role="radiogroup">
+            <label class="radio"><input type="radio" name="ctype" value="unprotected" checked><span data-i18n="type_unprotected">Unprotected</span></label>
+            <label class="radio"><input type="radio" name="ctype" value="protected"><span data-i18n="type_protected">Protected</span></label>
+            <label class="radio"><input type="radio" name="ctype" value="lifeline"><span data-i18n="type_lifeline">Lifeline</span></label>
+          </div>
+          <p class="hint" id="type-note"></p>
+        </fieldset>
+
+        <div class="field">
+          <label for="load-input" data-i18n="load_label">Sanctioned load (kW)</label>
+          <input type="number" id="load-input" min="0" max="50" step="0.5" value="5">
+          <p class="hint" data-i18n="load_hint"></p>
+        </div>
+
+        <div class="field">
+          <label for="fpa-input" data-i18n="fpa_label">FPA on your bill (Rs/unit, optional)</label>
+          <input type="number" id="fpa-input" min="-10" max="20" step="0.01" placeholder="e.g. 3.40">
+          <p class="hint" data-i18n="fpa_hint"></p>
+        </div>
+
+        <div class="field switch">
+          <label>
+            <input type="checkbox" id="atl-input" checked>
+            <span data-i18n="filer_label">On the Active Taxpayer List (filer)</span>
+          </label>
+          <p class="hint" data-i18n="filer_hint"></p>
+        </div>
+
+        <div class="field">
+          <label for="budget-input" data-i18n="budget_label">My budget (Rs)</label>
+          <input type="number" id="budget-input" min="0" step="500" value="20000">
+        </div>
+
+        <div class="field">
+          <label for="actual-input" data-i18n="actual_bill_label">Actual bill total (Rs, optional)</label>
+          <input type="number" id="actual-input" min="0" step="1" placeholder="e.g. 41250">
+          <p class="hint" data-i18n="actual_bill_hint"></p>
+        </div>
+      </section>
+
+      <!-- ======================= results ======================= -->
+      <section class="results">
+
+        <!-- paper bill -->
+        <article class="card bill">
+          <div class="bill-head">
+            <div class="bill-head-brand">
+              <span class="disco-name">LESCO</span>
+              <span class="bill-head-line" id="bill-head-line"></span>
+            </div>
+            <span class="stamp" data-i18n="breakdown_title">Your bill, line by line</span>
+          </div>
+          <div class="bill-body">
+            <div id="bill-items"></div>
+            <div class="bill-total-row" id="bill-total-row"></div>
+          </div>
+          <div class="bill-foot">
+            <p class="hint" data-i18n="breakdown_hint">Tap any line to see its formula and source.</p>
+            <div id="warnings"></div>
+          </div>
+        </article>
+
+        <!-- headline number -->
+        <article class="card headline">
+          <p class="headline-label" data-i18n="total_label">Estimated total</p>
+          <p class="headline-value" id="total-value">—</p>
+          <p class="headline-sub" id="effective-rate">—</p>
+          <button class="btn primary" id="share-btn" data-i18n="share_btn">Copy WhatsApp summary</button>
+        </article>
+
+        <!-- cliff chart -->
+        <article class="card">
+          <h2 data-i18n="cliff_title">The slab cliff</h2>
+          <div id="cliff-chart"></div>
+          <div class="cliff-grid" id="cliff-grid">
+            <div><span data-i18n="cliff_current_slab">Current slab</span><b id="cliff-slab">—</b></div>
+            <div><span data-i18n="cliff_remaining">Units left</span><b id="cliff-remaining">—</b></div>
+            <div><span data-i18n="cliff_crossing">Cost of crossing</span><b id="cliff-crossing" class="neg">—</b></div>
+            <div><span data-i18n="cliff_next_unit">One more unit costs</span><b id="cliff-next-unit">—</b></div>
+          </div>
+          <p class="hint" id="cliff-top-note" hidden data-i18n="cliff_top">Top slab — no cliff above you.</p>
+          <p class="note" id="cliff-note"></p>
+        </article>
+
+        <!-- budget + audit -->
+        <article class="card">
+          <h2 data-i18n="budget_title">Budget planner</h2>
+          <p class="budget-result" id="budget-result">—</p>
+        </article>
+
+        <article class="card audit">
+          <h2 data-i18n="audit_title">Audit your paper bill</h2>
+          <div id="audit-result" hidden></div>
+          <p class="audit-links">
+            <a id="helpline-link" href="tel:118"></a> ·
+            <a id="complaint-link" href="https://nepra.org.pk/complaints.php" target="_blank" rel="noopener" data-i18n="audit_file">Complain to NEPRA</a>
+          </p>
+        </article>
+
+      </section>
+    </main>
+
+    <footer class="foot">
+      <p id="disclaimer" class="hint"></p>
+      <p class="hint"><span id="data-updated"></span> · <span data-i18n="offline_ready">Works offline</span> · MIT license</p>
+      <nav class="sources">
+        <h2 data-i18n="footer_sources">Tariff sources</h2>
+        <ul id="source-list"></ul>
+      </nav>
+    </footer>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

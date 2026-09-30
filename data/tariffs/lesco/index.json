@@ -1,0 +1,5 @@
+{
+  "_note": "Periods available for LESCO. 'default' is what the app loads; keep old periods so shared/audited calculations stay reproducible.",
+  "default": "2026-10",
+  "periods": ["2026-10"]
+}
