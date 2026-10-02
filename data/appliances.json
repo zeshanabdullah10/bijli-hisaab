@@ -1,0 +1,48 @@
+{
+  "_note": "Typical Pakistani household appliances. watts = rated draw while running; duty = share of running time at that draw (compressors cycle); hours = a typical day. These are planning defaults, not measurements: users edit them to match their own labels.",
+  "appliances": [
+    { "id": "ac_inv_15", "emoji": "❄️", "group": "cooling", "name_en": "AC 1.5 ton (inverter)", "name_ur": "اے سی 1.5 ٹن (انورٹر)", "watts": 1300, "duty": 0.55, "hours": 8, "qty": 1 },
+    { "id": "ac_std_15", "emoji": "❄️", "group": "cooling", "name_en": "AC 1.5 ton (non-inverter)", "name_ur": "اے سی 1.5 ٹن (عام)", "watts": 1600, "duty": 0.75, "hours": 8, "qty": 1 },
+    { "id": "ac_std_1", "emoji": "❄️", "group": "cooling", "name_en": "AC 1 ton", "name_ur": "اے سی 1 ٹن", "watts": 1100, "duty": 0.75, "hours": 8, "qty": 1 },
+    { "id": "fan_ceiling", "emoji": "🌀", "group": "cooling", "name_en": "Ceiling fan", "name_ur": "چھت کا پنکھا", "watts": 75, "duty": 1, "hours": 12, "qty": 3 },
+    { "id": "fan_dc", "emoji": "🌀", "group": "cooling", "name_en": "Inverter / DC fan", "name_ur": "انورٹر / ڈی سی پنکھا", "watts": 35, "duty": 1, "hours": 12, "qty": 3 },
+    { "id": "fan_pedestal", "emoji": "💨", "group": "cooling", "name_en": "Pedestal / table fan", "name_ur": "پیڈسٹل / ٹیبل فین", "watts": 60, "duty": 1, "hours": 6, "qty": 1 },
+    { "id": "cooler", "emoji": "🧊", "group": "cooling", "name_en": "Air cooler", "name_ur": "ایئر کولر", "watts": 200, "duty": 1, "hours": 8, "qty": 1 },
+    { "id": "fridge", "emoji": "🥛", "group": "kitchen", "name_en": "Refrigerator", "name_ur": "فریج", "watts": 150, "duty": 0.45, "hours": 24, "qty": 1 },
+    { "id": "freezer", "emoji": "🧊", "group": "kitchen", "name_en": "Deep freezer", "name_ur": "ڈیپ فریزر", "watts": 200, "duty": 0.5, "hours": 24, "qty": 1 },
+    { "id": "dispenser", "emoji": "🚰", "group": "kitchen", "name_en": "Water dispenser", "name_ur": "واٹر ڈسپنسر", "watts": 500, "duty": 0.1, "hours": 24, "qty": 1 },
+    { "id": "microwave", "emoji": "🍲", "group": "kitchen", "name_en": "Microwave / oven", "name_ur": "مائیکرو ویو / اوون", "watts": 1200, "duty": 1, "hours": 0.4, "qty": 1 },
+    { "id": "induction", "emoji": "🍳", "group": "kitchen", "name_en": "Induction cooker", "name_ur": "انڈکشن چولہا", "watts": 1800, "duty": 1, "hours": 1, "qty": 1 },
+    { "id": "led", "emoji": "💡", "group": "lighting", "name_en": "LED bulb", "name_ur": "ایل ای ڈی بلب", "watts": 12, "duty": 1, "hours": 6, "qty": 6 },
+    { "id": "tube", "emoji": "💡", "group": "lighting", "name_en": "Tube light / old bulb", "name_ur": "ٹیوب لائٹ / پرانا بلب", "watts": 40, "duty": 1, "hours": 6, "qty": 2 },
+    { "id": "tv", "emoji": "📺", "group": "home", "name_en": "LED TV", "name_ur": "ایل ای ڈی ٹی وی", "watts": 80, "duty": 1, "hours": 5, "qty": 1 },
+    { "id": "computer", "emoji": "💻", "group": "home", "name_en": "Laptop / desktop", "name_ur": "لیپ ٹاپ / ڈیسک ٹاپ", "watts": 90, "duty": 1, "hours": 6, "qty": 1 },
+    { "id": "router", "emoji": "📶", "group": "home", "name_en": "WiFi router", "name_ur": "وائی فائی راؤٹر", "watts": 12, "duty": 1, "hours": 24, "qty": 1 },
+    { "id": "washer", "emoji": "🧺", "group": "chores", "name_en": "Washing machine", "name_ur": "واشنگ مشین", "watts": 450, "duty": 1, "hours": 1, "qty": 1 },
+    { "id": "iron", "emoji": "👔", "group": "chores", "name_en": "Clothes iron", "name_ur": "استری", "watts": 1000, "duty": 0.6, "hours": 0.7, "qty": 1 },
+    { "id": "pump", "emoji": "🚿", "group": "chores", "name_en": "Water pump (1 HP)", "name_ur": "واٹر پمپ (1 ایچ پی)", "watts": 750, "duty": 1, "hours": 0.7, "qty": 1 },
+    { "id": "geyser", "emoji": "♨️", "group": "chores", "name_en": "Electric geyser", "name_ur": "الیکٹرک گیزر", "watts": 1500, "duty": 0.5, "hours": 3, "qty": 1 },
+    { "id": "heater", "emoji": "🔥", "group": "chores", "name_en": "Room heater", "name_ur": "روم ہیٹر", "watts": 1500, "duty": 0.8, "hours": 4, "qty": 1 }
+  ],
+  "groups": [
+    { "id": "cooling", "name_en": "Cooling", "name_ur": "ٹھنڈک" },
+    { "id": "kitchen", "name_en": "Kitchen", "name_ur": "باورچی خانہ" },
+    { "id": "lighting", "name_en": "Lighting", "name_ur": "روشنی" },
+    { "id": "home", "name_en": "Home & office", "name_ur": "گھر اور دفتر" },
+    { "id": "chores", "name_en": "Chores & heating", "name_ur": "گھریلو کام اور ہیٹنگ" }
+  ],
+  "presets": [
+    {
+      "id": "light", "name_en": "No AC", "name_ur": "بغیر اے سی",
+      "picks": { "fan_ceiling": {}, "fridge": {}, "led": {}, "tv": {}, "router": {}, "washer": {}, "pump": {}, "iron": {} }
+    },
+    {
+      "id": "family_ac", "name_en": "Family + 1 AC", "name_ur": "فیملی + ایک اے سی",
+      "picks": { "ac_inv_15": {}, "fan_ceiling": {}, "fridge": {}, "led": {}, "tv": {}, "router": {}, "washer": {}, "pump": {}, "iron": {}, "dispenser": {}, "computer": {} }
+    },
+    {
+      "id": "heavy", "name_en": "Hot summer, 2 ACs", "name_ur": "شدید گرمی، دو اے سی",
+      "picks": { "ac_std_15": { "qty": 2 }, "fan_ceiling": {}, "fridge": {}, "freezer": {}, "led": {}, "tv": {}, "router": {}, "washer": {}, "pump": {}, "iron": {}, "dispenser": {}, "computer": {} }
+    }
+  ]
+}

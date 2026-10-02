@@ -3,18 +3,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>BijliHisaab: your electricity bill, translated</title>
-  <meta name="description" content="Line-by-line decoder and slab-cliff calculator for Pakistani domestic electricity bills. Bilingual, offline-capable, open data.">
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f3f0">
-  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b0d0c">
+  <title>BijliHisaab: know your bill before it lands</title>
+  <meta name="description" content="Decode, predict and cut your Pakistani electricity bill. Meter tracker, slab-cliff alerts, appliance planner and bill audit. Bilingual, offline, open data.">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f3ec">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0c0e12">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=0.3.5">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="preload" href="fonts/spacegrotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/style.css?v=0.4.0">
   <script>
     // Theme flash guard: set data-theme before first paint.
     (function () {
-      var t = localStorage.getItem('bh_theme');
-      if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      try {
+        var s = JSON.parse(localStorage.getItem('bh2') || 'null');
+        var t = s ? s.theme : localStorage.getItem('bh_theme');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch (e) {}
     })();
   </script>
 </head>
@@ -42,190 +47,245 @@
     <symbol id="i-plus" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m-7-7h14"/></symbol>
     <symbol id="i-info-circle" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0-18 0m9-3h.01"/><path d="M11 12h1v4h1"/></g></symbol>
     <symbol id="i-chevron-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9l6 6l6-6"/></symbol>
+    <symbol id="i-calendar-stats" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M11.795 21H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4m-1 3v4h4"/><path d="M14 18a4 4 0 1 0 8 0a4 4 0 1 0-8 0m1-15v4M7 3v4m-4 4h16"/></g></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12h1m8-9v1m8 8h1M5.6 5.6l.7.7m12.1-.7l-.7.7M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0-1 3a2 2 0 0 1-4 0a3.5 3.5 0 0 0-1-3m.7 1h4.6"/></symbol>
+    <symbol id="i-book-2" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M19 4v16H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M19 16H7a2 2 0 0 0-2 2M9 8h6"/></g></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37c1 .608 2.296.07 2.572-1.065"/><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0-6 0"/></g></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 6L6 18M6 6l12 12"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16m-10 4v6m4-6v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 11l5 5l5-5m-5-7v12"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 9l5-5l5 5m-5-5v12"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M7 9.667A2.667 2.667 0 0 1 9.667 7h8.666A2.667 2.667 0 0 1 21 9.667v8.666A2.667 2.667 0 0 1 18.333 21H9.667A2.667 2.667 0 0 1 7 18.333z"/><path d="M4.012 16.737A2 2 0 0 1 3 15V5c0-1.1.9-2 2-2h10c.75 0 1.158.385 1.5 1"/></g></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0"/><path d="M7 12a5 5 0 1 0 10 0a5 5 0 1 0-10 0"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0"/></g></symbol>
+    <symbol id="i-chart-bar" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 13a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1zm12-4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1zM9 5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1zM4 20h14"/></symbol>
+    <symbol id="i-plug-connected" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m7 12l5 5l-1.5 1.5a3.536 3.536 0 1 1-5-5zm10 0l-5-5l1.5-1.5a3.536 3.536 0 1 1 5 5zM3 21l2.5-2.5m13-13L21 3m-11 8l-2 2m5 1l-2 2"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 11A8.1 8.1 0 0 0 4.5 9M4 5v4h4m-4 4a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 15l6-6m-4-3l.463-.536a5 5 0 0 1 7.071 7.072L18 13m-5 5l-.397.534a5.07 5.07 0 0 1-7.127 0a4.97 4.97 0 0 1 0-7.071L6 11"/></symbol>
+    <symbol id="i-photo" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M15 8h.01M3 6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z"/><path d="m3 16l5-5c.928-.893 2.072-.893 3 0l5 5"/><path d="m14 14l1-1c.928-.893 2.072-.893 3 0l3 3"/></g></symbol>
+    <symbol id="i-sparkles" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2-2a2 2 0 0 1-2-2a2 2 0 0 1-2 2m0-12a2 2 0 0 1 2 2a2 2 0 0 1 2-2a2 2 0 0 1-2-2a2 2 0 0 1-2 2M9 18a6 6 0 0 1 6-6a6 6 0 0 1-6-6a6 6 0 0 1-6 6a6 6 0 0 1 6 6"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M5 13a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0-2 0m-3-5V7a4 4 0 1 1 8 0v4"/></g></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></symbol>
+    <symbol id="i-rotate" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.95 11a8 8 0 1 0-.5 4m.5 5v-5h-5"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 12.572L12 20l-7.5-7.428A5 5 0 1 1 12 6.006a5 5 0 1 1 7.5 6.572"/></symbol>
+    <symbol id="i-air-conditioning" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M8 16a3 3 0 0 1-3 3m11-3a3 3 0 0 0 3 3m-7-3v4M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M7 13v-3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3"/></g></symbol>
+    <symbol id="i-building-community" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 9l5 5v7H8v-4m0 4H3v-7l5-5m1 1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17h-8m0-14v.01M17 7v.01M17 11v.01M17 15v.01"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-6 6l6-6m-6-6l6 6"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a5 5 0 0 1 7 0a5 5 0 0 0 7 0v9a5 5 0 0 1-7 0a5 5 0 0 0-7 0zm0 16v-7"/></symbol>
+    <symbol id="i-device-floppy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M6 4h10l4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"/><path d="M10 14a2 2 0 1 0 4 0a2 2 0 1 0-4 0m4-10v4H8V4"/></g></symbol>
+    <symbol id="i-list-details" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5h8m-8 4h5m-5 6h8m-8 4h5M3 5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1zm0 10a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-alert-circle" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0-18 0m9-4v4m0 4h.01"/></symbol>
+    <symbol id="i-circle-check" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0"/><path d="m9 12l2 2l4-4"/></g></symbol>
+    <symbol id="i-pencil" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20h4L18.5 9.5a2.828 2.828 0 1 0-4-4L4 16zm9.5-13.5l4 4"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 8v4l2 2"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></g></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0-8 0M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></symbol>
+    <symbol id="i-map-pin" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0-6 0"/><path d="M17.657 16.657L13.414 20.9a2 2 0 0 1-2.827 0l-4.244-4.243a8 8 0 1 1 11.314 0"/></g></symbol>
   </svg>
 
   <header class="nav">
     <div class="nav-inner">
-      <div class="brand">
+      <a class="brand" href="#/bill" aria-label="BijliHisaab">
         <span class="brand-mark"><svg aria-hidden="true"><use href="#i-bolt"/></svg></span>
         <span class="brand-name" data-i18n="brand">BijliHisaab</span>
-      </div>
+      </a>
+      <nav class="tabs-desktop" aria-label="Sections">
+        <a href="#/bill" data-route="bill"><svg aria-hidden="true"><use href="#i-receipt"/></svg><span data-i18n="tab_bill">Bill</span></a>
+        <a href="#/track" data-route="track"><svg aria-hidden="true"><use href="#i-calendar-stats"/></svg><span data-i18n="tab_track">Track</span></a>
+        <a href="#/plan" data-route="plan"><svg aria-hidden="true"><use href="#i-bulb"/></svg><span data-i18n="tab_plan">Appliances</span></a>
+        <a href="#/learn" data-route="learn"><svg aria-hidden="true"><use href="#i-book-2"/></svg><span data-i18n="tab_learn">Learn</span></a>
+      </nav>
       <div class="nav-actions">
-        <button id="theme-toggle" class="icon-btn" aria-label="Toggle theme">
-          <svg class="ic-sun" aria-hidden="true"><use href="#i-sun"/></svg>
-          <svg class="ic-moon" aria-hidden="true"><use href="#i-moon"/></svg>
-        </button>
-        <button id="lang-toggle" class="pill-btn">
+        <button id="lang-toggle" class="pill-btn" type="button">
           <svg aria-hidden="true"><use href="#i-language"/></svg>
           <span data-i18n="lang_toggle">اردو</span>
+        </button>
+        <button id="settings-btn" class="icon-btn" type="button" data-i18n-aria="settings_title" aria-label="Settings">
+          <svg aria-hidden="true"><use href="#i-settings"/></svg>
         </button>
       </div>
     </div>
   </header>
 
-  <main class="layout">
+  <!-- shows once the hero scrolls out of view -->
+  <div class="mini-total" id="mini-total" hidden aria-hidden="true">
+    <span id="mini-label"></span><b class="tnum" id="mini-amount"></b>
+  </div>
 
-    <!-- ============ inputs: only what's needed ============ -->
-    <section class="card panel" aria-label="inputs">
+  <main id="app">
 
-      <div class="units-block">
-        <div class="units-head">
-          <svg class="row-ic" aria-hidden="true"><use href="#i-gauge"/></svg>
-          <label for="units-input" class="units-label" data-i18n="units_label">Monthly units</label>
-          <div class="stepper">
-            <button id="units-minus" class="step-btn" data-i18n-aria="less_units" aria-label="Fewer units"><svg aria-hidden="true"><use href="#i-minus"/></svg></button>
-            <input type="number" id="units-input" class="tnum" min="0" max="2000" step="1" value="300" aria-label="Monthly units">
-            <button id="units-plus" class="step-btn" data-i18n-aria="more_units" aria-label="More units"><svg aria-hidden="true"><use href="#i-plus"/></svg></button>
+    <!-- ===================== BILL ===================== -->
+    <section class="view" id="view-bill" data-view="bill" hidden>
+      <div class="bill-grid">
+
+        <section class="hero-card" id="hero" aria-live="polite">
+          <div class="hero-top">
+            <span class="hero-label" data-i18n="total_label">Estimated bill</span>
+            <span class="chip" id="hero-chip"></span>
           </div>
-        </div>
-        <input type="range" id="units-slider" min="0" max="1000" step="1" value="300" aria-label="Units slider">
-      </div>
-
-      <div class="seg" id="ctype-seg" role="radiogroup" aria-label="Consumer type">
-        <span class="seg-thumb" aria-hidden="true"></span>
-        <label class="seg-item"><input type="radio" name="ctype" value="unprotected" checked><span data-i18n="type_unprotected">Unprotected</span></label>
-        <label class="seg-item"><input type="radio" name="ctype" value="protected"><span data-i18n="type_protected">Protected</span></label>
-        <label class="seg-item"><input type="radio" name="ctype" value="lifeline"><span data-i18n="type_lifeline">Lifeline</span></label>
-      </div>
-      <p class="seg-note" id="type-note"></p>
-
-      <div class="row row-switch">
-        <svg class="row-ic" aria-hidden="true"><use href="#i-sun"/></svg>
-        <span class="row-label" data-i18n="solar_label">Rooftop solar</span>
-        <span class="switch"><input type="checkbox" id="solar-toggle" aria-label="Rooftop solar"><span class="switch-track"></span></span>
-      </div>
-
-      <div id="solar-panel" hidden>
-        <div class="seg two" id="solar-mode-seg" role="radiogroup" aria-label="Solar connection type">
-          <span class="seg-thumb" aria-hidden="true"></span>
-          <label class="seg-item"><input type="radio" name="smode" value="net_metering" checked><span data-i18n="solar_nm">Net metering</span></label>
-          <label class="seg-item"><input type="radio" name="smode" value="net_billing"><span data-i18n="solar_nb">Net billing</span></label>
-        </div>
-        <p class="seg-note" id="solar-mode-note"></p>
-        <div class="reg-grid">
-          <div class="reg"><label for="solar-imp-peak" data-i18n="solar_imports_peak_label">Peak imports (kWh)</label><input type="number" id="solar-imp-peak" class="tnum" min="0" max="5000" step="1" placeholder="0"></div>
-          <div class="reg"><label for="solar-imp-off" data-i18n="solar_imports_off_label">Off-peak imports (kWh)</label><input type="number" id="solar-imp-off" class="tnum" min="0" max="5000" step="1" placeholder="0"></div>
-          <div class="reg"><label for="solar-exp-peak" data-i18n="solar_exports_peak_label">Exported at peak (kWh)</label><input type="number" id="solar-exp-peak" class="tnum" min="0" max="5000" step="1" placeholder="0"></div>
-          <div class="reg"><label for="solar-exp-off" data-i18n="solar_exports_off_label">Exported off-peak (kWh)</label><input type="number" id="solar-exp-off" class="tnum" min="0" max="5000" step="1" placeholder="0"></div>
-          <div class="reg" id="solar-buyback-cell"><label for="solar-buyback-input" data-i18n="solar_buyback_label">Off-peak buyback (Rs/unit)</label><input type="number" id="solar-buyback-input" class="tnum" min="0" max="50" step="0.01" placeholder="auto"></div>
-          <div class="reg" id="solar-buyback-peak-cell"><label for="solar-buyback-peak" data-i18n="solar_buyback_peak_label">Peak buyback (Rs/unit)</label><input type="number" id="solar-buyback-peak" class="tnum" min="0" max="50" step="0.01" placeholder="auto"></div>
-          <div class="reg"><label for="solar-cost-input" data-i18n="solar_cost_label">System cost (Rs)</label><input type="number" id="solar-cost-input" class="tnum" min="0" max="10000000" step="10000" placeholder="0"></div>
-        </div>
-        <p class="group-hint" data-i18n="solar_hint">Read the peak and off-peak registers off your net-metering statement. Total grid imports above update automatically as peak + off-peak.</p>
-      </div>
-
-      <details class="more" id="more-options">
-        <summary>
-          <svg class="row-ic" aria-hidden="true"><use href="#i-info-circle"/></svg>
-          <span data-i18n="more_options">More options</span>
-          <svg class="line-chev" aria-hidden="true"><use href="#i-chevron-down"/></svg>
-        </summary>
-        <div class="group">
-          <div class="row">
-            <svg class="row-ic" aria-hidden="true"><use href="#i-plug"/></svg>
-            <label class="row-label" for="disco-select" data-i18n="disco_label">DISCO</label>
-            <select id="disco-select" class="row-select"></select>
+          <p class="hero-amount"><span class="hero-cur">Rs</span><span class="tnum" id="total-value"></span></p>
+          <p class="hero-sub" id="effective-rate"></p>
+          <div class="moneybar" id="moneybar" role="img"></div>
+          <ul class="money-legend" id="money-legend"></ul>
+          <div class="hero-actions">
+            <button class="btn btn-volt" id="share-btn" type="button"><svg aria-hidden="true"><use href="#i-share"/></svg><span data-i18n="share_btn">Share</span></button>
+            <button class="btn btn-ghost-dark" id="link-btn" type="button"><svg aria-hidden="true"><use href="#i-link"/></svg><span data-i18n="link_btn">Copy link</span></button>
           </div>
-          <div class="row">
-            <svg class="row-ic" aria-hidden="true"><use href="#i-gauge"/></svg>
-            <label class="row-label" for="load-input" data-i18n="load_label">Sanctioned load (kW)</label>
-            <input type="number" id="load-input" class="row-input tnum" min="0" max="50" step="0.5" value="5">
+        </section>
+
+        <section class="card scenario" aria-label="inputs">
+          <div class="units-block">
+            <div class="units-head">
+              <label for="units-input" class="units-label" data-i18n="units_label">Monthly units</label>
+              <div class="stepper">
+                <button id="units-minus" class="step-btn" type="button" data-i18n-aria="less_units" aria-label="Fewer units"><svg aria-hidden="true"><use href="#i-minus"/></svg></button>
+                <input type="number" inputmode="numeric" id="units-input" class="tnum" min="0" max="2000" step="1" value="300" aria-label="Monthly units">
+                <button id="units-plus" class="step-btn" type="button" data-i18n-aria="more_units" aria-label="More units"><svg aria-hidden="true"><use href="#i-plus"/></svg></button>
+              </div>
+            </div>
+            <input type="range" id="units-slider" min="0" max="1000" step="1" value="300" aria-label="Units slider">
+            <div class="slider-scale" id="slider-scale" aria-hidden="true"></div>
           </div>
-          <div class="row">
-            <svg class="row-ic" aria-hidden="true"><use href="#i-flame"/></svg>
-            <label class="row-label" for="fpa-input" data-i18n="fpa_label">FPA (Rs/unit)</label>
-            <input type="number" id="fpa-input" class="row-input tnum" min="-10" max="20" step="0.01" placeholder="auto">
+
+          <div class="seg" id="ctype-seg" role="radiogroup" aria-label="Consumer type">
+            <span class="seg-thumb" aria-hidden="true"></span>
+            <label class="seg-item"><input type="radio" name="ctype" value="unprotected" checked><span data-i18n="type_unprotected">Unprotected</span></label>
+            <label class="seg-item"><input type="radio" name="ctype" value="protected"><span data-i18n="type_protected">Protected</span></label>
+            <label class="seg-item"><input type="radio" name="ctype" value="lifeline"><span data-i18n="type_lifeline">Lifeline</span></label>
           </div>
+          <p class="seg-note" id="type-note"></p>
+
+          <button class="conn-row" id="conn-row" type="button">
+            <svg class="row-ic" aria-hidden="true"><use href="#i-plug-connected"/></svg>
+            <span class="conn-text" id="conn-text"></span>
+            <span class="conn-edit" data-i18n="edit">Edit</span>
+          </button>
+
           <div class="row row-switch">
-            <svg class="row-ic" aria-hidden="true"><use href="#i-shield-check"/></svg>
-            <span class="row-label" data-i18n="filer_label">Tax filer (ATL)</span>
-            <span class="switch"><input type="checkbox" id="atl-input" checked aria-label="On the Active Taxpayer List"><span class="switch-track"></span></span>
+            <svg class="row-ic" aria-hidden="true"><use href="#i-sun"/></svg>
+            <span class="row-label" data-i18n="solar_label">Rooftop solar</span>
+            <span class="switch"><input type="checkbox" id="solar-toggle" aria-label="Rooftop solar"><span class="switch-track"></span></span>
           </div>
-        </div>
-        <p class="group-hint" data-i18n="fpa_hint">Bills print the exact FPA rate. Leave empty to use the latest documented value.</p>
-      </details>
 
+          <div id="solar-panel" hidden>
+            <div class="seg two" id="solar-mode-seg" role="radiogroup" aria-label="Solar connection type">
+              <span class="seg-thumb" aria-hidden="true"></span>
+              <label class="seg-item"><input type="radio" name="smode" value="net_metering" checked><span data-i18n="solar_nm">Net metering</span></label>
+              <label class="seg-item"><input type="radio" name="smode" value="net_billing"><span data-i18n="solar_nb">Net billing</span></label>
+            </div>
+            <p class="seg-note" id="solar-mode-note"></p>
+            <div class="reg-grid">
+              <div class="reg"><label for="solar-imp-peak" data-i18n="solar_imports_peak_label">Peak imports (kWh)</label><input type="number" inputmode="decimal" id="solar-imp-peak" class="tnum" min="0" max="5000" step="1" placeholder="0"></div>
+              <div class="reg"><label for="solar-imp-off" data-i18n="solar_imports_off_label">Off-peak imports (kWh)</label><input type="number" inputmode="decimal" id="solar-imp-off" class="tnum" min="0" max="5000" step="1" placeholder="0"></div>
+              <div class="reg"><label for="solar-exp-peak" data-i18n="solar_exports_peak_label">Exported at peak (kWh)</label><input type="number" inputmode="decimal" id="solar-exp-peak" class="tnum" min="0" max="5000" step="1" placeholder="0"></div>
+              <div class="reg"><label for="solar-exp-off" data-i18n="solar_exports_off_label">Exported off-peak (kWh)</label><input type="number" inputmode="decimal" id="solar-exp-off" class="tnum" min="0" max="5000" step="1" placeholder="0"></div>
+              <div class="reg" id="solar-buyback-cell"><label for="solar-buyback-input" data-i18n="solar_buyback_label">Off-peak buyback (Rs/unit)</label><input type="number" inputmode="decimal" id="solar-buyback-input" class="tnum" min="0" max="50" step="0.01" placeholder="auto"></div>
+              <div class="reg" id="solar-buyback-peak-cell"><label for="solar-buyback-peak" data-i18n="solar_buyback_peak_label">Peak buyback (Rs/unit)</label><input type="number" inputmode="decimal" id="solar-buyback-peak" class="tnum" min="0" max="50" step="0.01" placeholder="auto"></div>
+              <div class="reg"><label for="solar-cost-input" data-i18n="solar_cost_label">System cost (Rs)</label><input type="number" inputmode="decimal" id="solar-cost-input" class="tnum" min="0" max="10000000" step="10000" placeholder="0"></div>
+            </div>
+            <p class="group-hint" data-i18n="solar_hint">Read the peak and off-peak registers off your net-metering statement.</p>
+          </div>
+        </section>
+
+        <section class="card solar-card" id="solar-strip" hidden>
+          <div class="tiles">
+            <div class="tile"><span data-i18n="solar_with">Bill with solar</span><b id="solar-with" class="tnum"></b></div>
+            <div class="tile"><span data-i18n="solar_without">Without solar</span><b id="solar-without" class="tnum"></b></div>
+            <div class="tile good"><span data-i18n="solar_saving">Monthly saving</span><b id="solar-saving" class="tnum"></b></div>
+            <div class="tile"><span data-i18n="solar_payback">Payback</span><b id="solar-payback" class="tnum"></b></div>
+          </div>
+        </section>
+
+        <section class="card insights" id="insights-card">
+          <header class="card-head"><svg class="head-ic" aria-hidden="true"><use href="#i-sparkles"/></svg><h2 data-i18n="insights_title">What stands out</h2></header>
+          <div id="insights-list"></div>
+        </section>
+
+        <section class="card breakdown" id="breakdown-card">
+          <header class="card-head">
+            <svg class="head-ic" aria-hidden="true"><use href="#i-receipt"/></svg><h2 data-i18n="breakdown_title">Your bill, line by line</h2>
+          </header>
+          <div id="bill-items"></div>
+          <div class="bill-total" id="bill-total-row"></div>
+          <div id="warnings"></div>
+        </section>
+
+        <section class="card cliff">
+          <header class="card-head">
+            <svg class="head-ic" aria-hidden="true"><use href="#i-trending-up"/></svg>
+            <h2 data-i18n="cliff_title">The slab cliff</h2>
+            <span class="head-side" data-i18n="chart_hint">Drag to explore</span>
+          </header>
+          <div id="cliff-chart" class="chart-wrap"></div>
+          <div class="tiles" id="cliff-grid">
+            <div class="tile"><span data-i18n="cliff_remaining">Units left</span><b id="cliff-remaining" class="tnum"></b></div>
+            <div class="tile warn"><span data-i18n="cliff_crossing">Cost of crossing</span><b id="cliff-crossing" class="tnum"></b></div>
+          </div>
+          <p class="note" id="cliff-top-note" hidden data-i18n="cliff_top">Top slab, no cliff above you.</p>
+          <p class="note" id="cliff-note"></p>
+        </section>
+
+        <section class="card compare" id="compare-card">
+          <header class="card-head"><svg class="head-ic" aria-hidden="true"><use href="#i-shield-check"/></svg><h2 data-i18n="compare_title">Same units, other classes</h2></header>
+          <div id="compare-list"></div>
+          <p class="note" data-i18n="compare_note">Protected and lifeline status depends on your six- or twelve-month history, not on a choice you make.</p>
+        </section>
+
+        <section class="card check">
+          <header class="card-head"><svg class="head-ic" aria-hidden="true"><use href="#i-search"/></svg><h2 data-i18n="check_title">Reality check</h2></header>
+
+          <div class="subhead" data-i18n="budget_title">Budget planner</div>
+          <div class="row">
+            <svg class="row-ic" aria-hidden="true"><use href="#i-wallet"/></svg>
+            <label class="row-label" for="budget-input" data-i18n="budget_label">My budget (Rs)</label>
+            <input type="number" inputmode="numeric" id="budget-input" class="row-input tnum" min="0" step="500" value="20000">
+          </div>
+          <p class="tool-big tnum" id="budget-result"></p>
+
+          <div class="check-divider"></div>
+          <div class="subhead" data-i18n="audit_title">Audit your paper bill</div>
+          <div class="row">
+            <svg class="row-ic" aria-hidden="true"><use href="#i-receipt"/></svg>
+            <label class="row-label" for="actual-input" data-i18n="actual_bill_label">Amount on your bill (Rs)</label>
+            <input type="number" inputmode="numeric" id="actual-input" class="row-input tnum" min="0" step="1">
+          </div>
+          <p class="group-hint" data-i18n="audit_hint">Uses the units, class and settings above. Enter the units printed on your bill first.</p>
+          <div id="audit-result" hidden></div>
+          <p class="audit-links">
+            <a id="helpline-link" href="tel:118"></a> ·
+            <a id="complaint-link" href="https://nepra.org.pk/complaints.php" target="_blank" rel="noopener" data-i18n="audit_file">Complain to NEPRA</a>
+          </p>
+        </section>
+
+      </div>
     </section>
 
-    <!-- ============ the result: number + where it goes ============ -->
-    <section class="card result">
-      <div class="hero">
-        <p class="hero-label" data-i18n="total_label">Estimated total</p>
-        <p class="hero-amount"><span class="hero-cur">Rs</span><span class="tnum" id="total-value"></span></p>
-        <p class="hero-sub" id="effective-rate"></p>
-        <p class="hero-caption tnum" id="bill-head-line"></p>
-      </div>
-
-      <div class="bill-body">
-        <div id="bill-items"></div>
-        <div class="bill-total" id="bill-total-row"></div>
-        <div id="warnings"></div>
-      </div>
-
-      <div class="tiles solar-strip" id="solar-strip" hidden>
-        <div class="tile"><span data-i18n="solar_with">Bill with solar</span><b id="solar-with" class="tnum"></b></div>
-        <div class="tile"><span data-i18n="solar_without">Without solar</span><b id="solar-without" class="tnum"></b></div>
-        <div class="tile good"><span data-i18n="solar_saving">Monthly saving</span><b id="solar-saving" class="tnum"></b></div>
-        <div class="tile"><span data-i18n="solar_payback">Payback</span><b id="solar-payback" class="tnum"></b></div>
-      </div>
-
-      <button class="btn-primary" id="share-btn">
-        <svg aria-hidden="true"><use href="#i-share"/></svg>
-        <span data-i18n="share_btn">Copy WhatsApp summary</span>
-      </button>
-    </section>
-
-    <!-- ============ the cliff ============ -->
-    <section class="card cliff">
-      <header class="card-head">
-        <svg class="head-ic" aria-hidden="true"><use href="#i-trending-up"/></svg>
-        <h2 data-i18n="cliff_title">The slab cliff</h2>
-      </header>
-      <div id="cliff-chart" class="chart-wrap"></div>
-      <div class="tiles" id="cliff-grid">
-        <div class="tile"><span data-i18n="cliff_remaining">Units left</span><b id="cliff-remaining" class="tnum"></b></div>
-        <div class="tile warn"><span data-i18n="cliff_crossing">Cost of crossing</span><b id="cliff-crossing" class="tnum"></b></div>
-      </div>
-      <p class="note" id="cliff-top-note" hidden data-i18n="cliff_top">Top slab, no cliff above you.</p>
-      <p class="note" id="cliff-note"></p>
-    </section>
-
-    <!-- ============ reality check: budget + audit ============ -->
-    <section class="card check">
-      <header class="card-head">
-        <svg class="head-ic" aria-hidden="true"><use href="#i-wallet"/></svg>
-        <h2 data-i18n="check_title">Reality check</h2>
-      </header>
-      <div class="row">
-        <svg class="row-ic" aria-hidden="true"><use href="#i-wallet"/></svg>
-        <label class="row-label" for="budget-input" data-i18n="budget_label">My budget (Rs)</label>
-        <input type="number" id="budget-input" class="row-input tnum" min="0" step="500" value="20000">
-      </div>
-      <p class="tool-big tnum" id="budget-result"></p>
-      <div class="check-divider"></div>
-      <div class="row">
-        <svg class="row-ic" aria-hidden="true"><use href="#i-receipt"/></svg>
-        <label class="row-label" for="actual-input" data-i18n="actual_bill_label">Actual bill (Rs)</label>
-        <input type="number" id="actual-input" class="row-input tnum" min="0" step="1">
-      </div>
-      <div id="audit-result" hidden></div>
-      <p class="audit-links">
-        <a id="helpline-link" href="tel:118"></a> ·
-        <a id="complaint-link" href="https://nepra.org.pk/complaints.php" target="_blank" rel="noopener" data-i18n="audit_file">Complain to NEPRA</a>
-      </p>
-    </section>
+    <!-- built on first visit -->
+    <section class="view" id="view-track" data-view="track" hidden></section>
+    <section class="view" id="view-plan" data-view="plan" hidden></section>
+    <section class="view" id="view-learn" data-view="learn" hidden></section>
 
   </main>
 
   <footer class="foot">
     <p class="foot-disclaimer" id="disclaimer"></p>
-    <p class="foot-meta"><span id="rates-chip"></span> · <span id="data-updated"></span> · <span data-i18n="offline_ready">Works offline</span>, MIT</p>
+    <p class="foot-meta"><span id="rates-chip"></span> · <span id="data-updated"></span> · <span data-i18n="offline_ready">Works offline</span> · MIT</p>
     <details class="sources">
       <summary><svg class="row-ic" aria-hidden="true"><use href="#i-info-circle"/></svg><span data-i18n="footer_sources">Tariff sources</span></summary>
       <ul id="source-list"></ul>
     </details>
   </footer>
 
-  <script type="module" src="js/main.js?v=0.3.5"></script>
+  <nav class="tabbar" aria-label="Sections">
+    <a href="#/bill" data-route="bill"><svg aria-hidden="true"><use href="#i-receipt"/></svg><span data-i18n="tab_bill">Bill</span></a>
+    <a href="#/track" data-route="track"><svg aria-hidden="true"><use href="#i-calendar-stats"/></svg><span data-i18n="tab_track">Track</span></a>
+    <a href="#/plan" data-route="plan"><svg aria-hidden="true"><use href="#i-bulb"/></svg><span data-i18n="tab_plan">Appliances</span></a>
+    <a href="#/learn" data-route="learn"><svg aria-hidden="true"><use href="#i-book-2"/></svg><span data-i18n="tab_learn">Learn</span></a>
+  </nav>
+
+  <dialog id="settings-sheet" class="sheet" aria-labelledby="settings-title"></dialog>
+  <dialog id="welcome-sheet" class="sheet" aria-labelledby="welcome-title"></dialog>
+  <dialog id="close-sheet" class="sheet" aria-labelledby="close-title"></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="js/main.js?v=0.4.0"></script>
 </body>
 </html>

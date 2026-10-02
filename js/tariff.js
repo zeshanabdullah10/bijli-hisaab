@@ -63,7 +63,7 @@ function energyCharge(cls, units) {
  * the class (200 / 100 units). Cross it and the month is billed as an ordinary
  * unprotected consumer — the cap is the whole point of the protection.
  */
-export function effectiveConsumerType(tariff, consumerType, units, warnings = []) {
+export function effectiveConsumerType(tariff, consumerType, units, warnings = [], notices = []) {
   const cls = tariff.consumer_classes.domestic[consumerType];
   const cap = consumerType === 'lifeline' || consumerType === 'protected'
     ? cls.slabs[cls.slabs.length - 1].up_to
@@ -73,6 +73,7 @@ export function effectiveConsumerType(tariff, consumerType, units, warnings = []
       `You entered ${units} units as a ${consumerType} consumer, but the ${consumerType} tables only apply up to ${cap} units. ` +
       `This month is billed as UNPROTECTED: the whole month reprices, and ${consumerType === 'protected' ? 'protection is lost for the next 6 months' : 'lifeline status is lost'}.`,
     );
+    notices.push({ code: 'over_cap', params: { type: consumerType, cap, units } });
     return 'unprotected';
   }
   return consumerType;
@@ -99,7 +100,7 @@ export function effectiveConsumerType(tariff, consumerType, units, warnings = []
  *   net_billing:  imports billed in full at slab rates, exports credited at
  *   the buyback rate per register (peak rate defaults to the off-peak rate
  *   when not supplied).
- * @returns {{items: Array, total: number, totalBeforeIncomeTax: number, effectiveRatePerUnit: number, warnings: string[]}}
+ * @returns {{items: Array, total: number, totalBeforeIncomeTax: number, effectiveRatePerUnit: number, warnings: string[], notices: Array<{code: string, params: object}>}}
  */
 export function computeBill(p) {
   const {
@@ -108,6 +109,8 @@ export function computeBill(p) {
   } = p;
 
   const warnings = [];
+  // Same messages as `warnings`, as { code, params } so the UI can translate.
+  const notices = [];
   let units = unitsIn;
   let importedUnits = unitsIn;
   if (solar) {
@@ -129,6 +132,7 @@ export function computeBill(p) {
           warnings.push(
             `You exported ${Math.round(surplus)} more units than you imported in the same register${surplusPeak > 0 && surplusOff > 0 ? 's' : ''}. Under net metering the difference rolls forward to future bills as a unit credit, not cash.`,
           );
+          notices.push({ code: 'solar_surplus_reg', params: { n: Math.round(surplus) } });
         }
       } else {
         const exported = expPeak + expOff;
@@ -137,6 +141,7 @@ export function computeBill(p) {
           warnings.push(
             `You exported ${Math.round(exported - importedUnits)} more units than you imported. Under net metering the difference rolls forward to future bills as a unit credit, not cash.`,
           );
+          notices.push({ code: 'solar_surplus', params: { n: Math.round(exported - importedUnits) } });
         }
       }
     } else {
@@ -146,7 +151,7 @@ export function computeBill(p) {
 
   const cls = tariff.consumer_classes.domestic[consumerType];
   if (!cls) throw new Error(`Unknown consumerType: ${consumerType}`);
-  const effType = effectiveConsumerType(tariff, consumerType, units, warnings);
+  const effType = effectiveConsumerType(tariff, consumerType, units, warnings, notices);
   const effCls = tariff.consumer_classes.domestic[effType];
   const items = [];
   const src = (id) => (tariff.sources.find((s) => s.id === id) || {}).url || '';
@@ -285,6 +290,7 @@ export function computeBill(p) {
     warnings.push(
       `Bill is below the Rs ${it.threshold.toLocaleString('en-PK')} income-tax threshold for non-filers, so no income tax applies.`,
     );
+    notices.push({ code: 'below_it_threshold', params: { threshold: it.threshold } });
   }
 
   let total = round2(totalBeforeIncomeTax + incomeTax);
@@ -293,6 +299,7 @@ export function computeBill(p) {
     warnings.push(
       'Your solar export credit exceeds this month\'s entire bill. The surplus carries forward on your account; this estimate shows Rs 0 payable.',
     );
+    notices.push({ code: 'credit_exceeds', params: {} });
   }
   return {
     items,
@@ -300,6 +307,7 @@ export function computeBill(p) {
     totalBeforeIncomeTax,
     effectiveRatePerUnit: importedUnits > 0 ? round2(total / importedUnits) : 0,
     warnings,
+    notices,
   };
 }
 

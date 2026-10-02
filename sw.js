@@ -2,19 +2,37 @@
 // load-shedding. App shell: cache-first; JSON data: stale-while-revalidate so
 // fresh tariff rates arrive in the background without blocking.
 
-const VERSION = 'bh-v0.3.6';
+const VERSION = 'bh-v0.4.0';
 const SHELL = [
   './',
   './index.html',
   './css/style.css',
   './fonts/notonastaliq-arabic.woff2',
+  './fonts/spacegrotesk-latin.woff2',
   './js/main.js',
+  './js/app.js',
+  './js/store.js',
+  './js/ui.js',
+  './js/version.js',
   './js/tariff.js',
+  './js/insights.js',
+  './js/tracker.js',
+  './js/appliances.js',
   './js/i18n.js',
   './js/chart.js',
+  './js/views/bill.js',
+  './js/views/track.js',
+  './js/views/plan.js',
+  './js/views/learn.js',
+  './js/views/settings.js',
   './icon.svg',
+  './icons/icon-180.png',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
   './manifest.webmanifest',
   './data/discos.json',
+  './data/appliances.json',
+  './data/learn.json',
   './data/tariffs/exwapda/index.json',
   './data/tariffs/exwapda/2026-10.json',
 ];

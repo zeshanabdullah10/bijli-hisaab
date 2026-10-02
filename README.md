@@ -1,19 +1,27 @@
 # BijliHisaab · بجلی حساب
 
-**Your electricity bill, translated.**
+**Know your bill before it lands.**
 
-A free, offline-capable, bilingual (English / اردو) decoder for Pakistani domestic
-electricity bills. Punch in your units and it shows — line by line, with formulas
-and sources — where every rupee goes: slab charges, the new per-kW fixed charges,
-financing surcharge, FPA, QTA, electricity duty, GST, TV fee and income tax.
+A free, private, offline-capable, bilingual (English / اردو) app for Pakistani
+domestic electricity consumers. It does four jobs:
 
-It also shows the thing nobody explains: **the slab cliff**. Unprotected consumers
-are billed at the rate of the slab the month *lands in* — cross 200 units by one
-and the whole month is repriced. Drag the slider and watch it happen.
+| Tab | What it does |
+|---|---|
+| **Bill** | Itemises your bill line by line (slabs, fixed charges, financing surcharge, QTA, FPA, duty, GST, TV fee, income tax) with a formula and source on every line. Shows where each rupee goes, the **slab cliff**, what other consumer classes would pay, a budget planner, and plain-English **insights** ("5 units from a Rs 1,556 jump"). |
+| **Track** | A meter tracker. Log readings every few days; it projects the month's units and bill, flags a heatwave in your recent pace, and tells you the **units per day** that keep you under the next cliff. Close the cycle to log it, then follow your six-month **Protected** and twelve-month **Lifeline** progress and past bills. |
+| **Appliances** | Pick what runs at home (or start from a preset). Each appliance is priced against the real tariff, cliffs included: what it costs per hour, what you save by switching it off, what one hour less a day is worth. One tap sends the total to the Bill tab. |
+| **Learn** | A searchable glossary of every bill line (linked from the bill), money-saving tips, and a step-by-step guide for disputing a bill. |
 
-- No accounts, no tracking, no backend — 100% client-side.
+The **audit** on the Bill tab goes beyond a diff: enter the amount on your paper
+bill and it reports the units and FPA that amount implies, and whether a
+different sanctioned load, consumer class or filer status reproduces it.
+
+- No accounts, no tracking, no backend — 100% client-side. Data stays on the
+  device; back it up or move it to another phone from Settings.
 - Tariff data is open JSON with a `source_url` on every rate.
-- Installable PWA: works offline, including during load-shedding.
+- Installable PWA with home-screen shortcuts. Works offline, including during
+  load-shedding.
+- Share a scenario as a link: `#/bill?u=300&t=protected&d=lesco&k=5`.
 
 ## Run it locally
 
@@ -25,6 +33,22 @@ npm start        # serves on http://127.0.0.1:8080
 
 Opening `index.html` directly from disk will **not** work (ES modules + `fetch`
 require HTTP).
+
+## Code map
+
+```
+index.html            app shell + the Bill view's markup
+js/main.js            boot, hash router, view lifecycle
+js/app.js, store.js   shared context + one-document persistence (with v1 migration)
+js/views/*.js         bill, track, plan (appliances), learn, settings/welcome
+js/tariff.js          bill engine (pure)
+js/insights.js        insights, class comparison, bill diagnosis (pure)
+js/tracker.js         cycle projection, daily allowance, streaks (pure)
+js/appliances.js      appliance pricing (pure)
+data/                 tariffs, DISCOs, appliance catalog, learn content (all open JSON)
+```
+
+The `js/` modules marked pure have no DOM access and are covered by `node --test`.
 
 ## Deploy to GitHub Pages
 
@@ -42,8 +66,9 @@ npm test          # node --test — zero dependencies
 
 The suite pins the engine to published arithmetic (e.g. the SRO 279(I)/2026
 examples: 200 unprotected units × Rs 28.91 = Rs 5,782; protected 200 units =
-100 × 10.54 + 100 × 13.01 = Rs 2,355) and guards the data schema (every tariff
-file must carry sources and effective dates).
+100 × 10.54 + 100 × 13.01 = Rs 2,355), guards the data schema (every tariff
+file must carry sources and effective dates), and covers the advice, tracker and
+appliance logic.
 
 ### Real-bill fixtures (help wanted!)
 
@@ -78,7 +103,7 @@ GEPCO, MEPCO, IESCO, PESCO, HESCO, SEPCO, QESCO) - unprotected / protected /
 lifeline slabs, per-kW fixed charges, financing-cost surcharge, QTA, FPA
 (default + your bill's exact rate), provincial electricity duty, GST, TV
 licence fee, income tax for non-filers above Rs 25,000, minimum charge, the
-slab cliff, budget planner, paper-bill audit, and rooftop solar in both
+slab cliff, budget planner, paper-bill audit and diagnosis, and rooftop solar in both
 connection regimes:
 
 - **Net metering** (grandfathered agreements): exports offset imports 1:1
@@ -108,8 +133,9 @@ A DISCO that ever gets its own rates again just points at its own tariff set.
 - [x] All ex-WAPDA DISCOs
 - [x] Solar: net metering + net billing (Prosumer Regulations 2026)
 - [ ] K-Electric (different tariff structure)
-- [ ] Protected-status streak tracker (200 units x 6 months)
-- [ ] Appliance estimator ("your AC at 8h/day = N units/month")
+- [x] Protected-status streak tracker (200 units x 6 months)
+- [x] Appliance estimator ("your AC at 8h/day = N units/month")
+- [x] Meter tracker with projection and daily allowance
 - [ ] Monthly FPA auto-reminder via GitHub Action -> PR
 - [ ] GasHisaab - same engine, SNGPL/SSGC winter bills
 
@@ -125,7 +151,7 @@ Business Recorder. The authoritative source is always the NEPRA notification.
 ## Credits
 
 - UI icons: [Tabler Icons](https://tabler.io/icons) (MIT), vendored as an inline SVG sprite (`tools/fetch-icons.mjs` rebuilds it)
-- Urdu display type: Noto Nastaliq Urdu (OFL), self-hosted arabic subset in `fonts/`
+- Type: Space Grotesk (OFL) for numbers and headings, Noto Nastaliq Urdu (OFL) for Urdu, both self-hosted in `fonts/`
 - Tariff data: see the sources cited inside `data/tariffs/`
 
 ## License

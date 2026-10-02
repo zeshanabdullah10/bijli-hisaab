@@ -1,15 +1,23 @@
 {
-  "name": "BijliHisaab — bill decoder",
+  "name": "BijliHisaab — know your bill before it lands",
   "short_name": "BijliHisaab",
-  "description": "Your electricity bill, translated. Slab calculator and line-by-line decoder for Pakistani domestic bills.",
-  "start_url": "./",
+  "description": "Decode, predict and cut your Pakistani electricity bill. Meter tracker, slab-cliff alerts, appliance planner and bill audit.",
+  "start_url": "./#/bill",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#faf7ee",
-  "theme_color": "#0b5c3f",
+  "background_color": "#14171c",
+  "theme_color": "#14171c",
   "lang": "en",
   "dir": "auto",
+  "categories": ["utilities", "finance"],
   "icons": [
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Track my meter", "url": "./#/track", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Appliance planner", "url": "./#/plan", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }

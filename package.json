@@ -1,11 +1,11 @@
 {
   "name": "bijli-hisaab",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "description": "Your electricity bill, translated — slab calculator and line-by-line decoder for Pakistani domestic consumers. Static, offline-capable, bilingual.",
   "type": "module",
   "private": true,
   "scripts": {
-    "test": "node --test tests/",
+    "test": "node --test",
     "start": "npx -y http-server -p 8080 -c-1"
   },
   "license": "MIT"
