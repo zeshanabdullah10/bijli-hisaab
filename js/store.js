@@ -31,6 +31,7 @@ export const defaultState = () => ({
   },
   cycle: { startDate: '', startReading: '', cycleDays: 30, readings: [] },
   tou: { peak: '', offPeak: '', mdi: '' }, // time-of-use registers from the bill
+  gas: { company: 'sngpl', protected: false, hm3: 1.2, gcv: '' },
   bills: [], // { id, month: 'YYYY-MM', units, amount }
   plan: { sel: {} }, // appliance id -> { qty, hours, watts }
   welcomed: false,
@@ -103,7 +104,7 @@ export function clearState() {
 // ---------------------------------------------------------------- households
 
 /** Fields that belong to one meter; everything else (language, theme) is global. */
-export const HOUSEHOLD_KEYS = ['profile', 'units', 'budget', 'actual', 'solar', 'cycle', 'tou', 'bills', 'plan', 'nudgeDismissed'];
+export const HOUSEHOLD_KEYS = ['profile', 'units', 'budget', 'actual', 'solar', 'cycle', 'tou', 'gas', 'bills', 'plan', 'nudgeDismissed'];
 
 const pick = (state) => JSON.parse(JSON.stringify(Object.fromEntries(HOUSEHOLD_KEYS.map((k) => [k, state[k]]))));
 

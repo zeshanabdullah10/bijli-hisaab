@@ -287,9 +287,9 @@ h1, h2, .hero-amount, .summary-big, .brand-name, .tile b, .bill-total, .tool-big
   left: 50%;
   bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
-  width: min(calc(100% - 24px), 460px);
+  width: min(calc(100% - 24px), 500px);
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 4px;
   padding: 6px;
   border-radius: 24px;
@@ -614,7 +614,7 @@ h1, h2, .hero-amount, .summary-big, .brand-name, .tile b, .bill-total, .tool-big
 .step-btn.sm { width: 28px; height: 28px; }
 .step-btn.sm svg { width: 14px; height: 14px; }
 
-#units-input {
+#units-input, #gas-hm3 {
   width: 66px;
   border: none;
   background: transparent;
@@ -629,7 +629,7 @@ h1, h2, .hero-amount, .summary-big, .brand-name, .tile b, .bill-total, .tool-big
 #units-input[readonly] { color: var(--text-2); }
 input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
-#units-input:focus-visible { outline: none; }
+#units-input:focus-visible, #gas-hm3:focus-visible { outline: none; }
 
 input[type="range"] {
   -webkit-appearance: none;
@@ -668,7 +668,7 @@ input[type="range"]::-moz-range-thumb {
   background: var(--knob);
   box-shadow: 0 0 0 1px rgba(20, 23, 28, 0.12), 0 3px 8px rgba(20, 23, 28, 0.32);
 }
-[dir="rtl"] { --grad-dir: left; }
+/* sliders stay left-to-right in Urdu (see input[type="range"] below), so the fill does too */
 
 /* Slab boundaries under the slider: the cliffs, made visible */
 .slider-scale { position: relative; height: 24px; margin: 0 14px 6px; direction: ltr; }
@@ -1392,3 +1392,7 @@ dialog.sheet[open] { animation: sheet-in 0.4s var(--ease-out); }
 .tou-panel { margin-top: 16px; }
 .tou-hours { display: flex; gap: 8px; align-items: center; font-size: 0.86rem; font-weight: 600; margin-bottom: 10px; }
 .tou-hours svg { width: 18px; height: 18px; color: var(--accent-text); flex: none; }
+.tips { display: grid; gap: 10px; padding-inline-start: 18px; list-style: disc; font-size: 0.9rem; line-height: 1.5; color: var(--text-2); }
+.tips li::marker { color: var(--accent-text); }
+/* Number lines read left to right in Urdu too; keep sliders aligned with their scales. */
+input[type="range"] { direction: ltr; }

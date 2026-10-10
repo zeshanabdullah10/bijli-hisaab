@@ -5,11 +5,12 @@ import { billView } from './views/bill.js';
 import { trackView } from './views/track.js';
 import { planView } from './views/plan.js';
 import { learnView } from './views/learn.js';
+import { gasView } from './views/gas.js';
 import { openSettings, applyTheme, maybeWelcome, renderHomeChip } from './views/settings.js';
 import { renderNudge } from './views/nudge.js';
 import { $$, el } from './ui.js';
 
-const VIEWS = { bill: billView, track: trackView, plan: planView, learn: learnView };
+const VIEWS = { bill: billView, track: trackView, plan: planView, gas: gasView, learn: learnView };
 const built = new Set();
 let current = null;
 
@@ -74,16 +75,18 @@ async function route() {
 // ---------------------------------------------------------------- boot
 
 async function boot() {
-  const [discos, appliances, learn, solar] = await Promise.all([
+  const [discos, appliances, learn, solar, gas] = await Promise.all([
     fetch('data/discos.json').then((r) => r.json()),
     fetch('data/appliances.json').then((r) => r.json()),
     fetch('data/learn.json').then((r) => r.json()),
     fetch('data/solar.json').then((r) => r.json()),
+    fetch('data/gas/2025-07.json').then((r) => r.json()),
   ]);
   app.discos = discos;
   app.appliances = appliances;
   app.learn = learn;
   app.solarData = solar;
+  app.gasTariff = gas;
   await app.setDisco(app.state.profile.discoId);
 
   applyTheme();

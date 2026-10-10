@@ -40,6 +40,9 @@ const SHELL = [
   './data/appliances.json',
   './data/learn.json',
   './data/solar.json',
+  './data/gas/2025-07.json',
+  './js/gas.js',
+  './js/views/gas.js',
   './data/tariffs/exwapda/index.json',
   './data/tariffs/exwapda/2026-10.json',
 ];

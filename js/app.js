@@ -19,6 +19,7 @@ export const app = {
   appliances: null,
   learn: null,
   solarData: null,
+  gasTariff: null,
   t: null,
 
   /** Mutate state, persist, and tell the active view to refresh values. */

@@ -1,0 +1,38 @@
+{
+  "_note": "Domestic natural-gas tariff for SNGPL and SSGC (sale prices are notified nationally, so both companies share it). In force since 1 Jul 2025 and kept unchanged for FY2026-27. Rates are per MMBtu; slab boundaries are monthly volume in hm3 (100 cubic metres). verified=false marks figures confirmed only by secondary sources.",
+  "effective_date": "2025-07-01",
+  "verified_on": "2026-10-10",
+  "sources": [
+    { "id": "ssgc", "title": "SSGC: Domestic consumers sale prices and minimum charges (effective 1 Jul 2025, OGRA notification of 29 Jun 2025)", "url": "https://www.ssgc.com.pk/web/?page_id=103" },
+    { "id": "fixed_jul25", "title": "The News: fixed gas charges raised by 50% for domestic consumers from 1 Jul 2025 (Rs 600 / 1,500 / 3,000)", "url": "https://www.thenews.com.pk/latest/1325446-fixed-gas-charges-increased-by-50-for-domestic-consumers" },
+    { "id": "unchanged_fy27", "title": "Profit, 7 Jul 2026: government keeps gas tariffs unchanged despite OGRA cut in prescribed prices", "url": "https://profit.pakistantoday.com.pk/2026/07/07/govt-keeps-gas-tariffs-unchanged-despite-ogra-cut-in-prescribed-prices" },
+    { "id": "geo_aug26", "title": "Geo, 28 Aug 2026: current 12-slab structure (protected Rs 200-350, non-protected Rs 500-4,200, Rs 40 meter rent); uniform-rate proposal pending", "url": "https://www.geo.tv/latest/679554-govt-moves-to-replace-12-slab-gas-tariff-with-uniform-rate" },
+    { "id": "sngpl_bill", "title": "Printed SNGPL bill (Dec 2024): MMBTU = HM3 x GCV / 281.7385, e.g. 0.529 hm3 at GCV 1037 = 1.946 MMBTU", "url": "https://www.scribd.com/document/814067011/SNGPL-Dec" },
+    { "id": "toolsfluent", "title": "Toolsfluent worked examples (secondary): 18% GST on gas charges + fixed charge + meter rent; ~3.5 MMBTU per hm3", "url": "https://www.toolsfluent.com/blog/gas-bill-slab-rates-pakistan-winter-2026" }
+  ],
+  "companies": [
+    { "id": "sngpl", "name_en": "SNGPL", "name_ur": "ایس این جی پی ایل", "region_en": "Punjab, KP, Islamabad", "region_ur": "پنجاب، کے پی، اسلام آباد", "helpline": "1199", "website": "https://www.sngpl.com.pk" },
+    { "id": "ssgc", "name_en": "SSGC", "name_ur": "ایس ایس جی سی", "region_en": "Sindh, Balochistan", "region_ur": "سندھ، بلوچستان", "helpline": "1199", "website": "https://www.ssgc.com.pk" }
+  ],
+  "protected_rule_en": "Protected if your average use over November to February was 0.9 hm3 a month or less.",
+  "protected_rule_ur": "اگر نومبر سے فروری تک آپ کا اوسط استعمال 0.9 hm3 ماہانہ یا کم تھا تو آپ محفوظ صارف ہیں۔",
+  "slabs": {
+    "protected": [
+      { "up_to": 0.25, "rate": 200 }, { "up_to": 0.5, "rate": 250 }, { "up_to": 0.6, "rate": 300 }, { "up_to": 0.9, "rate": 350 }
+    ],
+    "unprotected": [
+      { "up_to": 0.25, "rate": 500 }, { "up_to": 0.6, "rate": 850 }, { "up_to": 1, "rate": 1250 }, { "up_to": 1.5, "rate": 1450 },
+      { "up_to": 2, "rate": 1900 }, { "up_to": 3, "rate": 3300 }, { "up_to": 4, "rate": 3800 }, { "up_to": null, "rate": 4200 }
+    ],
+    "source": "ssgc"
+  },
+  "previous_slab_benefit": { "_note": "Units up to the previous slab's limit are billed at that slab's rate, the rest at the current slab's rate. Not in the top slab (above 4 hm3), where the whole month is billed at Rs 4,200.", "none_above": 4, "source": "ssgc" },
+  "fixed": {
+    "protected": [{ "up_to": null, "amount": 600 }],
+    "unprotected": [{ "up_to": 1.5, "amount": 1500 }, { "up_to": null, "amount": 3000 }],
+    "source": "fixed_jul25"
+  },
+  "meter_rent": { "amount": 40, "source": "ssgc" },
+  "gst": { "rate_pct": 18, "base": ["gas", "fixed", "meter_rent"], "verified": false, "source": "toolsfluent" },
+  "conversion": { "divisor": 281.7385, "default_gcv": 986, "_note": "MMBTU = hm3 x GCV / 281.7385. GCV is printed on every bill and varies by pipeline; 986 gives about 3.5 MMBTU per hm3.", "source": "sngpl_bill" }
+}
