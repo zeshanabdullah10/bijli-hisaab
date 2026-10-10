@@ -95,7 +95,7 @@ export function parseBillText(raw) {
 
   const amount = after(text, [
     String.raw`PAYABLE\s*WITHIN\s*DUE\s*DATE`, String.raw`AMOUNT\s*PAYABLE\s*WITHIN`, String.raw`WITHIN\s*DUE\s*DATE`,
-    String.raw`NET\s*AMOUNT\s*PAYABLE`, String.raw`TOTAL\s*PAYABLE`, String.raw`AMOUNT\s*PAYABLE`, String.raw`CURRENT\s*BILL`,
+    String.raw`NET\s*AMOUNT\s*PAYABLE`, String.raw`AMOUNT\s*DUE`, String.raw`TOTAL\s*PAYABLE`, String.raw`AMOUNT\s*PAYABLE`, String.raw`CURRENT\s*BILL`,
   ], { reach: 80, min: 1, max: 2000000, whole: true });
 
   const loadKw = row?.load ?? after(text, [String.raw`SANCTIONED\s*LOAD`, String.raw`SANC\.?\s*LOAD`, String.raw`\bLOAD\b`], { reach: 30, min: 0.1, max: 100 });

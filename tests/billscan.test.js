@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readdirSync, readFileSync } from 'node:fs';
 import { parseBillText } from '../js/billscan.js';
 
 test('billscan: labelled values on one line', () => {
@@ -43,25 +44,15 @@ test('billscan: nothing recognisable', () => {
   assert.equal(r.units, null);
 });
 
-test('billscan: real OCR output of a tabular bill (header row over value row)', () => {
-  // Tesseract's text for a PITC-style test bill: "UNITS" came out as "unrts",
-  // "TARIFF" as "TAREE", and the comma in 12,345 as a dot.
-  const r = parseBillText(`LAHORE ELECTRIC SUPPLY COMPANY
-ELECTRICITY CONSUMER BILL
-REFERENCE NO BILL MONTH READING DATE ISSUE DATE DUE DATE
-| 09 11234 1234567 U | sep 26 | 18100126 | 2100126 | ov10726 |
-| TAREE SANCTIONED LOAD | Previous | PRESENT | MF unrts |
-A1a(01) 5 14250 14495 1 245
-| cost oF ELECTRICITY [7.082 |
-|Fe SURCHARGE 784
-est 1,836
-| PAYABLE WITHIN DUE DATE [12.345 |
-PAYABLE AFTER DUE DATE 13,580`);
-  assert.equal(r.units, 245);
-  assert.equal(r.prevReading, 14250);
-  assert.equal(r.presReading, 14495);
-  assert.equal(r.loadKw, 5);
-  assert.equal(r.amount, 12345);
-  assert.equal(r.month, '2026-09');
-  assert.equal(r.found, 4);
-});
+// Every file in tests/fixtures/scans is an OCR capture with the numbers the
+// bill really shows. Contributions: copy the text from the scan sheet
+// ("Copy the text that was read"), blank out names/addresses/reference
+// numbers, and add a file here (see README).
+const dir = new URL('./fixtures/scans/', import.meta.url);
+for (const f of readdirSync(dir).filter((n) => n.endsWith('.json'))) {
+  const fx = JSON.parse(readFileSync(new URL(f, dir), 'utf8'));
+  test(`billscan fixture: ${f}`, () => {
+    const r = parseBillText(fx.ocr_text);
+    for (const [k, v] of Object.entries(fx.expected)) assert.equal(r[k], v, `${f}: ${k}`);
+  });
+}

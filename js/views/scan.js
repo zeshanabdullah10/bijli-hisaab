@@ -6,7 +6,7 @@ import { app } from '../app.js';
 import { parseBillText } from '../billscan.js';
 import { diagnoseBill } from '../insights.js';
 import { fmt } from '../i18n.js';
-import { esc, icon, openSheet, wireSheet } from '../ui.js';
+import { esc, icon, openSheet, wireSheet, copyText } from '../ui.js';
 
 const TESSERACT = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.esm.min.js';
 const MAX_SIDE = 2200; // big enough for small print, small enough to stay quick
@@ -71,7 +71,7 @@ export async function scan(file) {
     const { data } = await worker.recognize(await prepare(file));
     await worker.terminate();
     if (!dlg.open) return;
-    showResult(dlg, parseBillText(data.text));
+    showResult(dlg, parseBillText(data.text), data.text);
   } catch (err) {
     console.error('scan failed', err);
     if (!dlg.open) return;
@@ -81,7 +81,7 @@ export async function scan(file) {
   }
 }
 
-function showResult(dlg, r) {
+function showResult(dlg, r, rawText) {
   const { t, state } = app;
   const field = (id, label, value, attrs = '') => `
     <div class="field"><label for="${id}">${esc(label)}</label>
@@ -99,7 +99,12 @@ function showResult(dlg, r) {
       <div id="scan-verdict" aria-live="polite"></div>
       <label class="check-row"><input type="checkbox" id="scan-history" checked><span>${esc(t('scan_save_history'))}</span></label>
       <button class="btn btn-primary wide" type="submit">${icon('check')}<span>${esc(t('scan_apply'))}</span></button>
+      <button class="btn btn-ghost scan-copy" type="button" id="scan-copy">${icon('copy')}<span>${esc(t('scan_copy'))}</span></button>
+      <p class="group-hint">${esc(t('scan_copy_hint'))}</p>
     </form>`;
+  dlg.querySelector('#scan-copy').addEventListener('click', async () => {
+    if (await copyText(rawText)) app.toast(t('copied'));
+  });
   // Live check: what the tariff says these numbers should cost.
   const verdict = () => {
     const units = Number(dlg.querySelector('#scan-units').value);

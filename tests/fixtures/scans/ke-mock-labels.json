@@ -1,0 +1,12 @@
+{
+  "_note": "Synthetic: K-Electric label wording from ke.com.pk 'Know your bill' (Account Number, Amount Payable within Due Date, Units Consumed). Not a real OCR capture.",
+  "source": "synthetic",
+  "company": "kelectric",
+  "ocr_text": "K-Electric\nAccount Number 0400012345678\nBill Month Sep-2026\nSanctioned Load 3.0 kW\nPrevious Reading 22,410 Present Reading 22,688\nUnits Consumed 278\nFCA 208\nAmount Payable within Due Date 14,906\nAmount Payable after Due Date 15,650",
+  "expected": {
+    "units": 278,
+    "amount": 14906,
+    "month": "2026-09",
+    "loadKw": 3
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "_note": "Synthetic: Tesseract's output for a mock PITC-style (LESCO) bill rendered in a browser. Replace with real, anonymised transcriptions when available.",
+  "source": "synthetic",
+  "company": "lesco",
+  "ocr_text": "LAHORE ELECTRIC SUPPLY COMPANY\nELECTRICITY CONSUMER BILL\nREFERENCE NO BILL MONTH READING DATE ISSUE DATE DUE DATE\n| 09 11234 1234567 U | sep 26 | 18100126 | 2100126 | ov10726 |\n| TAREE SANCTIONED LOAD | Previous | PRESENT | MF unrts |\nA1a(01) 5 14250 14495 1 245\n| cost oF ELECTRICITY [7.082 |\n|Fe SURCHARGE 784\nest 1,836\n| PAYABLE WITHIN DUE DATE [12.345 |\nPAYABLE AFTER DUE DATE 13,580",
+  "expected": {
+    "units": 245,
+    "amount": 12345,
+    "month": "2026-09",
+    "loadKw": 5
+  }
+}

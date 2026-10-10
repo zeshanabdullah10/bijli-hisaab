@@ -12,6 +12,8 @@ domestic electricity consumers. It does four jobs:
 | **Bill → Scan** | Photograph your paper bill: it is read on the phone (Tesseract OCR, downloaded once from a CDN, the photo is never uploaded), and units, amount, billing month and sanctioned load are filled in after you confirm them. |
 | **Bill → Solar** | "Is solar worth it?": compares 2-10 kW systems on net-billing terms for your usage, city (Global Solar Atlas yields) and installed cost, with bill, saving and payback for each. |
 | **Appliances** | Pick what runs at home (or start from a preset). Each appliance is priced against the real tariff, cliffs included: what it costs per hour, what you save by switching it off, what one hour less a day is worth. One tap sends the total to the Bill tab. |
+| **Gas** | Sui gas bill for SNGPL and SSGC: protected / non-protected slabs with the previous-slab benefit, fixed charges, meter rent and GST, priced per MMBtu from your bill's GCV, plus the next slab line and what crossing it costs. |
+| **Everywhere** | Several homes/meters with their own data (Settings → Homes & meters), a "time to read the meter" banner when the last reading is 3+ days old, peak/off-peak (A-1(b)) meters, and shareable images of the bill breakdown and your year. |
 | **Learn** | A searchable glossary of every bill line (linked from the bill), money-saving tips, and a step-by-step guide for disputing a bill. |
 
 The **audit** on the Bill tab goes beyond a diff: enter the amount on your paper
@@ -72,6 +74,16 @@ examples: 200 unprotected units × Rs 28.91 = Rs 5,782; protected 200 units =
 file must carry sources and effective dates), and covers the advice, tracker and
 appliance logic.
 
+### Scanner fixtures (help wanted!)
+
+Each file in `tests/fixtures/scans/` is the text OCR read off a bill plus the
+numbers the bill really shows; `npm test` checks the parser against all of
+them. The two there now are synthetic. To add a real one: scan your bill in the
+app, tap **Copy the text that was read**, blank out your name, address and
+reference number, and save it as `{ "source": "real", "company": "...",
+"ocr_text": "...", "expected": { "units": ..., "amount": ..., "month": "YYYY-MM",
+"loadKw": ... } }`. Open a PR (or paste it in an issue).
+
 ### Real-bill fixtures (help wanted!)
 
 The best regression tests are *real bills*. If you want to contribute: photograph
@@ -119,8 +131,12 @@ connection regimes:
   (default Rs 10/unit, reported range Rs 8.13-11 - enter your agreement's rate).
   The Solar card shows with/without-solar bills, monthly saving and payback.
 
+Peak/off-peak meters (A-1(b), 5 kW and above) are modelled at the SRO 279
+uniform rates with fixed charges on 50% of sanctioned load or the MDI; pick
+"Peak & off-peak" under Settings → Meter type.
+
 **Not** modelled: arrears, meter rent, municipal taxes (MUCT etc.), estimated
-readings, three-phase/TOU meters, commercial & agricultural tariffs, K-Electric's KMC municipal charge (MUCT). Electricity
+readings, commercial & agricultural tariffs, K-Electric's KMC municipal charge (MUCT). Electricity
 duty: the federal government stopped collecting it through ex-WAPDA bills from
 July 2025 (APP / The News, 30 Jun 2025), so it is off by default there and on
 for K-Electric (still remitted to Sindh in late 2025). Settings → Electricity
@@ -146,7 +162,9 @@ A DISCO that ever gets its own rates again just points at its own tariff set.
 - [x] Monthly tariff-freshness check via GitHub Action -> issue (`tools/freshness.mjs`)
 - [x] Bill photo scan (on-device OCR)
 - [x] Solar sizing
-- [ ] GasHisaab - same engine, SNGPL/SSGC winter bills
+- [x] Gas tab - SNGPL/SSGC domestic tariff
+- [x] Peak/off-peak (TOU) meters
+- [x] Multiple homes/meters
 
 ## Sources
 

@@ -39,7 +39,7 @@ export const trackView = {
     root = document.getElementById('view-track');
     root.innerHTML = `
       <div class="page-head"><h1>${esc(t('track_title'))}</h1><p>${esc(t('track_sub'))}</p></div>
-      <div class="seg two" id="track-seg" role="tablist" style="--active:${sub === 'cycle' ? 0 : 1}">
+      <div class="seg two" id="track-seg" role="radiogroup" aria-label="${esc(t('track_title'))}" style="--active:${sub === 'cycle' ? 0 : 1}">
         <span class="seg-thumb" aria-hidden="true"></span>
         <label class="seg-item"><input type="radio" name="tsub" value="cycle" ${sub === 'cycle' ? 'checked' : ''}><span>${esc(t('sub_cycle'))}</span></label>
         <label class="seg-item"><input type="radio" name="tsub" value="history" ${sub === 'history' ? 'checked' : ''}><span>${esc(t('sub_history'))}</span></label>
