@@ -95,6 +95,7 @@
         <a href="#/learn" data-route="learn"><svg aria-hidden="true"><use href="#i-book-2"/></svg><span data-i18n="tab_learn">Learn</span></a>
       </nav>
       <div class="nav-actions">
+        <button id="home-chip" class="pill-btn home-chip" type="button" hidden data-i18n-aria="homes_title" aria-label="Homes"><svg aria-hidden="true"><use href="#i-map-pin"/></svg><span></span></button>
         <button id="lang-toggle" class="pill-btn" type="button">
           <svg aria-hidden="true"><use href="#i-language"/></svg>
           <span data-i18n="lang_toggle">اردو</span>
@@ -112,6 +113,7 @@
   </div>
 
   <main id="app">
+    <div class="nudge" id="nudge" role="region" aria-live="polite" hidden></div>
 
     <!-- ===================== BILL ===================== -->
     <section class="view" id="view-bill" data-view="bill" hidden>

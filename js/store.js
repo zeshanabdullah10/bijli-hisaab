@@ -31,6 +31,11 @@ export const defaultState = () => ({
   bills: [], // { id, month: 'YYYY-MM', units, amount }
   plan: { sel: {} }, // appliance id -> { qty, hours, watts }
   welcomed: false,
+  nudgeDismissed: '', // ISO date the reading reminder was dismissed
+  // Several meters (two portions, parents' house): the active one's data is
+  // the top-level fields above; the others are parked here until switched to.
+  households: [{ id: 'h1', name: '' }],
+  active: 'h1',
 });
 
 function read(k) {
@@ -90,6 +95,46 @@ export function saveState(state) {
 
 export function clearState() {
   try { localStorage.removeItem(KEY); } catch { /* ignore */ }
+}
+
+// ---------------------------------------------------------------- households
+
+/** Fields that belong to one meter; everything else (language, theme) is global. */
+export const HOUSEHOLD_KEYS = ['profile', 'units', 'budget', 'actual', 'solar', 'cycle', 'bills', 'plan', 'nudgeDismissed'];
+
+const pick = (state) => JSON.parse(JSON.stringify(Object.fromEntries(HOUSEHOLD_KEYS.map((k) => [k, state[k]]))));
+
+/** Park the active household's data and load `id`'s. Returns a new state. */
+export function switchHousehold(state, id) {
+  if (id === state.active || !state.households.some((h) => h.id === id)) return state;
+  const next = { ...state };
+  next.households = state.households.map((h) => (h.id === state.active ? { ...h, data: pick(state) } : h));
+  const target = next.households.find((h) => h.id === id);
+  const data = merge(pick(defaultState()), target.data || {});
+  Object.assign(next, data);
+  next.households = next.households.map((h) => (h.id === id ? { id: h.id, name: h.name } : h));
+  next.active = id;
+  return next;
+}
+
+/** Add a fresh household (same company as the current one) and switch to it. */
+export function addHousehold(state, name) {
+  const id = `h${Date.now().toString(36)}`;
+  const fresh = pick(defaultState());
+  fresh.profile.discoId = state.profile.discoId;
+  const next = { ...state, households: [...state.households, { id, name, data: fresh }] };
+  return switchHousehold(next, id);
+}
+
+export function renameHousehold(state, id, name) {
+  return { ...state, households: state.households.map((h) => (h.id === id ? { ...h, name } : h)) };
+}
+
+/** Remove a household; removing the active one switches to the first other. */
+export function removeHousehold(state, id) {
+  if (state.households.length < 2) return state;
+  const s = id === state.active ? switchHousehold(state, state.households.find((h) => h.id !== id).id) : state;
+  return { ...s, households: s.households.filter((h) => h.id !== id) };
 }
 
 /** Validate an imported backup; returns a full state or throws. */

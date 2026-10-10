@@ -4,6 +4,8 @@
 
 import { app } from '../app.js';
 import { parseBillText } from '../billscan.js';
+import { diagnoseBill } from '../insights.js';
+import { fmt } from '../i18n.js';
 import { esc, icon, openSheet, wireSheet } from '../ui.js';
 
 const TESSERACT = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.esm.min.js';
@@ -94,9 +96,26 @@ function showResult(dlg, r) {
         ${field('scan-load', t('scan_load'), r.loadKw, 'type="number" inputmode="decimal" min="0.5" max="50" step="0.5"')}
         ${r.fpaRate !== null ? field('scan-fpa', t('scan_fpa'), r.fpaRate, 'type="number" inputmode="decimal" step="0.0001"') : ''}
       </div>
+      <div id="scan-verdict" aria-live="polite"></div>
       <label class="check-row"><input type="checkbox" id="scan-history" checked><span>${esc(t('scan_save_history'))}</span></label>
       <button class="btn btn-primary wide" type="submit">${icon('check')}<span>${esc(t('scan_apply'))}</span></button>
     </form>`;
+  // Live check: what the tariff says these numbers should cost.
+  const verdict = () => {
+    const units = Number(dlg.querySelector('#scan-units').value);
+    const amount = Number(dlg.querySelector('#scan-amount').value);
+    const load = Number(dlg.querySelector('#scan-load').value);
+    const host = dlg.querySelector('#scan-verdict');
+    if (!(units > 0 && amount > 0)) { host.innerHTML = ''; return; }
+    const ctx = { ...app.plainCtx(units), ...(load > 0 && load <= 50 ? { loadKw: load } : {}) };
+    const d = diagnoseBill(ctx, amount);
+    const tone = d.verdict === 'match' ? 'ok' : d.verdict === 'explained' ? 'info' : 'warn';
+    host.innerHTML = `<div class="verdict v-${tone}">${icon(tone === 'ok' ? 'circle-check' : tone === 'info' ? 'search' : 'alert-circle')}
+      <div><b>${esc(t(`verdict_${d.verdict}`))}</b><p class="tnum">${esc(t('scan_vs', { est: fmt(d.computed), diff: fmt(Math.abs(d.diff)), dir: t(d.diff >= 0 ? 'scan_higher' : 'scan_lower'), pct: Math.abs(d.diffPct).toFixed(1) }))}</p></div></div>`;
+  };
+  dlg.querySelector('#scan-form').addEventListener('input', verdict);
+  verdict();
+
   dlg.querySelector('#scan-form').addEventListener('submit', () => {
     const v = (id) => dlg.querySelector(`#${id}`)?.value ?? '';
     const units = v('scan-units');
@@ -115,5 +134,7 @@ function showResult(dlg, r) {
     });
     app.toast(t('scan_done'));
     document.getElementById('actual-input').value = state.actual;
+    // Land on the full bill check, which explains any gap line by line.
+    if (amount !== '') setTimeout(() => document.getElementById('audit-result')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
   });
 }

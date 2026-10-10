@@ -192,3 +192,33 @@ export function buildIcs({ from, endDate, everyDays = 3, title, body, endTitle, 
   lines.push('END:VCALENDAR');
   return `${lines.join('\r\n')}\r\n`;
 }
+
+/**
+ * Why a new meter reading cannot be accepted, as an i18n key, or null if it
+ * can. Readings must move forward in both date and register.
+ */
+export function readingError(cycle, date, raw, today = isoDate()) {
+  if (!date || raw === '' || raw === null || raw === undefined || Number.isNaN(Number(raw))) return 'err_need_reading';
+  const reading = Number(raw);
+  const c = analyzeCycle({ ...cycle, today });
+  const prev = c.valid?.at(-1) || { date: cycle.startDate, reading: Number(cycle.startReading) };
+  if (date > today) return 'err_future';
+  if (date <= prev.date) return 'err_date_order';
+  if (reading < prev.reading) return 'err_reading_lower';
+  return null;
+}
+
+/**
+ * Should the app nudge for a reading? Only during a live cycle, when the
+ * newest reading is `after` days old or more and today is not dismissed.
+ * @returns {{days: number, last: {date: string, reading: number}}|null}
+ */
+export function readingDue(cycle, { today = isoDate(), after = 3, dismissed = '' } = {}) {
+  if (!cycle?.startDate || dismissed === today) return null;
+  const c = analyzeCycle({ ...cycle, today });
+  if (c.status === 'empty') return null;
+  const last = c.valid?.at(-1) || { date: cycle.startDate, reading: Number(cycle.startReading) };
+  const days = daysBetween(last.date, today);
+  if (days < after || daysBetween(today, c.endDate) < -3) return null;
+  return { days, last };
+}

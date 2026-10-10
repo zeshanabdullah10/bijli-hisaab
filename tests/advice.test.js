@@ -263,3 +263,25 @@ test('cutOptions: hours less a day per appliance, easiest first, feasible only',
   assert.deepEqual(o.map((x) => [x.id, x.hoursLess]), [['ac', 2], ['fan', 10.7]]);
   assert.deepEqual(cutOptions(items, 0), []);
 });
+
+test('readingError: forward in date and register only', async () => {
+  const { readingError } = await import('../js/tracker.js');
+  const cycle = { startDate: '2026-10-01', startReading: 1000, cycleDays: 30, readings: [{ date: '2026-10-05', reading: 1040 }] };
+  const today = '2026-10-10';
+  assert.equal(readingError(cycle, '2026-10-10', '1080', today), null);
+  assert.equal(readingError(cycle, '2026-10-10', '', today), 'err_need_reading');
+  assert.equal(readingError(cycle, '2026-10-11', '1080', today), 'err_future');
+  assert.equal(readingError(cycle, '2026-10-05', '1080', today), 'err_date_order');
+  assert.equal(readingError(cycle, '2026-10-10', '1030', today), 'err_reading_lower');
+});
+
+test('readingDue: nudges after three quiet days, not after the cycle, not when dismissed', async () => {
+  const { readingDue } = await import('../js/tracker.js');
+  const cycle = { startDate: '2026-10-01', startReading: 1000, cycleDays: 30, readings: [{ date: '2026-10-05', reading: 1040 }] };
+  assert.equal(readingDue(cycle, { today: '2026-10-07' }), null);
+  assert.deepEqual(readingDue(cycle, { today: '2026-10-08' }), { days: 3, last: { date: '2026-10-05', reading: 1040 } });
+  assert.equal(readingDue(cycle, { today: '2026-10-08', dismissed: '2026-10-08' }), null);
+  assert.equal(readingDue(cycle, { today: '2026-11-10' }), null);
+  assert.equal(readingDue({ startDate: '' }, { today: '2026-10-08' }), null);
+  assert.equal(readingDue({ ...cycle, readings: [] }, { today: '2026-10-04' }).days, 3);
+});

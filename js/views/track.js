@@ -6,7 +6,7 @@ import { computeBill } from '../tariff.js';
 import { billAt } from '../insights.js';
 import {
   analyzeCycle, allowanceFor, underLimitStreak, historyStats, isoDate, daysBetween,
-  forecastMonths, sameMonthLastYear, buildIcs,
+  forecastMonths, sameMonthLastYear, buildIcs, readingError,
 } from '../tracker.js';
 import { renderCycleChart } from '../chart.js';
 import { resolve, cutOptions } from '../appliances.js';
@@ -164,18 +164,12 @@ function startCycle() {
 
 function addReading() {
   const { t, state } = app;
-  const c = state.cycle;
   const date = $('#cy-date', root).value;
   const raw = $('#cy-reading', root).value;
   const err = $('#cy-err', root);
-  const fail = (key) => { err.textContent = t(key); err.hidden = false; };
-  if (!date || raw === '') return fail('err_need_reading');
+  const bad = readingError(state.cycle, date, raw, today());
+  if (bad) { err.textContent = t(bad); err.hidden = false; return; }
   const reading = Number(raw);
-  const last = analyzeCycle({ ...c, today: today() });
-  const prev = last.valid?.at(-1) || { date: c.startDate, reading: Number(c.startReading) };
-  if (date > today()) return fail('err_future');
-  if (date <= prev.date) return fail('err_date_order');
-  if (reading < prev.reading) return fail('err_reading_lower');
   err.hidden = true;
   app.change((s) => { s.cycle.readings.push({ date, reading }); });
   $('#cy-reading', root).value = '';

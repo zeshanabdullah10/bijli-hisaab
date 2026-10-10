@@ -2,7 +2,9 @@
 // connection lives here; the Bill tab only shows a one-line summary.
 
 import { app } from '../app.js';
-import { clearState, parseBackup, saveState } from '../store.js';
+import {
+  clearState, parseBackup, saveState, switchHousehold, addHousehold, renameHousehold, removeHousehold,
+} from '../store.js';
 import { VERSION } from '../version.js';
 import { $, esc, icon, num, openSheet, wireSheet, download } from '../ui.js';
 
@@ -28,6 +30,71 @@ function bindSeg(dlg, name, onPick) {
 const discoOptions = () => app.discos.discos
   .map((d) => `<option value="${d.id}" ${d.id === app.state.profile.discoId ? 'selected' : ''}>${esc(d.name_en)} · ${esc(app.state.lang === 'ur' ? d.region_ur : d.region_en)}</option>`).join('');
 
+/** Display name of a household: its own, or "Home 2". */
+export function homeName(h, i) {
+  return h.name || app.t('home_n', { n: i + 1 });
+}
+
+async function setState(next) {
+  app.state = next;
+  await app.setDisco(app.state.profile.discoId);
+  saveState(app.state);
+  app.rebuild();
+}
+
+function homesHTML() {
+  const { state, t } = app;
+  const disco = (h) => {
+    const id = h.id === state.active ? state.profile.discoId : h.data?.profile?.discoId;
+    return app.discos.discos.find((d) => d.id === id)?.name_en || '';
+  };
+  return `
+      <p class="sheet-label">${esc(t('homes_title'))}</p>
+      <div class="group homes">
+        ${state.households.map((h, i) => `
+        <div class="row home-row${h.id === state.active ? ' is-active' : ''}">
+          <button class="home-pick" type="button" data-home="${h.id}" aria-pressed="${h.id === state.active}" aria-label="${esc(t('homes_switch', { name: homeName(h, i) }))}">${icon(h.id === state.active ? 'circle-check' : 'map-pin')}</button>
+          <input class="home-name" type="text" maxlength="30" data-rename="${h.id}" value="${esc(h.name)}" placeholder="${esc(homeName(h, i))}" aria-label="${esc(t('homes_name'))}">
+          <span class="home-disco">${esc(disco(h))}</span>
+          ${state.households.length > 1 ? `<button class="icon-btn small" type="button" data-remove-home="${h.id}" aria-label="${esc(t('delete'))}">${icon('trash')}</button>` : ''}
+        </div>`).join('')}
+      </div>
+      <button class="btn btn-small homes-add" type="button" id="s-add-home">${icon('plus')}${esc(t('homes_add'))}</button>
+      <p class="group-hint">${esc(t('homes_hint'))}</p>`;
+}
+
+function wireHomes(dlg) {
+  dlg.querySelectorAll('[data-home]').forEach((b) => b.addEventListener('click', async () => {
+    await setState(switchHousehold(app.state, b.dataset.home));
+    buildSettings();
+    app.toast(app.t('homes_switched'));
+  }));
+  dlg.querySelectorAll('[data-rename]').forEach((inp) => inp.addEventListener('change', () => {
+    app.state = renameHousehold(app.state, inp.dataset.rename, inp.value.trim());
+    app.change();
+    renderHomeChip();
+  }));
+  dlg.querySelectorAll('[data-remove-home]').forEach((b) => b.addEventListener('click', async () => {
+    if (!confirm(app.t('homes_remove_confirm'))) return;
+    await setState(removeHousehold(app.state, b.dataset.removeHome));
+    buildSettings();
+  }));
+  $('#s-add-home', dlg).addEventListener('click', async () => {
+    await setState(addHousehold(app.state, ''));
+    buildSettings();
+    app.toast(app.t('homes_added'));
+  });
+}
+
+/** Header chip with the active home's name; only when there is more than one. */
+export function renderHomeChip() {
+  const chip = document.getElementById('home-chip');
+  const { state } = app;
+  const i = state.households.findIndex((h) => h.id === state.active);
+  chip.hidden = state.households.length < 2;
+  chip.querySelector('span').textContent = homeName(state.households[i], i);
+}
+
 async function pickDisco(id) {
   await app.setDisco(id);
   app.rebuild();
@@ -46,6 +113,8 @@ function buildSettings() {
     <div class="sheet-body">
       <header class="sheet-head"><h2 id="settings-title">${esc(t('settings_title'))}</h2>
         <button class="icon-btn small" type="button" data-close aria-label="${esc(t('close'))}">${icon('x')}</button></header>
+
+      ${homesHTML()}
 
       <p class="sheet-label">${esc(t('set_language'))}</p>
       ${segHTML('s-lang', [{ value: 'en', label: 'English' }, { value: 'ur', label: 'اردو' }], state.lang)}
@@ -88,6 +157,7 @@ function buildSettings() {
       ${esc(t('rates_chip', { date: app.tariff.effective_date }))}</p>
     </div>`;
   wireSheet(dlg);
+  wireHomes(dlg);
 
   bindSeg(dlg, 's-lang', (v) => { app.state.lang = v; app.rebuild(); buildSettings(); });
   bindSeg(dlg, 's-theme', (v) => { app.state.theme = v === 'auto' ? null : v; applyTheme(); app.change(); });

@@ -5,7 +5,8 @@ import { billView } from './views/bill.js';
 import { trackView } from './views/track.js';
 import { planView } from './views/plan.js';
 import { learnView } from './views/learn.js';
-import { openSettings, applyTheme, maybeWelcome } from './views/settings.js';
+import { openSettings, applyTheme, maybeWelcome, renderHomeChip } from './views/settings.js';
+import { renderNudge } from './views/nudge.js';
 import { $$, el } from './ui.js';
 
 const VIEWS = { bill: billView, track: trackView, plan: planView, learn: learnView };
@@ -65,6 +66,7 @@ async function route() {
   }
   current = name;
   view.update();
+  renderNudge();
   if (name === 'learn' && params.has('term')) learnView.focusTerm(params.get('term'));
   if (seeded) app.toast(app.t('scenario_loaded'));
 }
@@ -87,11 +89,14 @@ async function boot() {
   applyTheme();
   applyStaticTexts();
 
-  app.on('change', () => VIEWS[current]?.update());
+  app.on('change', () => { VIEWS[current]?.update(); renderNudge(); });
   app.on('rebuild', () => {
     applyStaticTexts();
     [...built].forEach((id) => VIEWS[id].build());
     VIEWS[current]?.update();
+    el('nudge').hidden = true;
+    renderNudge();
+    renderHomeChip();
   });
 
   el('lang-toggle').addEventListener('click', () => {
@@ -99,9 +104,11 @@ async function boot() {
     app.rebuild();
   });
   el('settings-btn').addEventListener('click', openSettings);
+  el('home-chip').addEventListener('click', openSettings);
   window.addEventListener('hashchange', route);
 
   await route();
+  renderHomeChip();
   maybeWelcome();
 
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
