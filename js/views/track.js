@@ -9,6 +9,7 @@ import {
   forecastMonths, sameMonthLastYear, buildIcs,
 } from '../tracker.js';
 import { renderCycleChart } from '../chart.js';
+import { resolve, cutOptions } from '../appliances.js';
 import { fmt } from '../i18n.js';
 import { $, $$, esc, icon, num, niceDate, download, openSheet, wireSheet } from '../ui.js';
 
@@ -392,7 +393,35 @@ function renderPlan(c, bounds, ur) {
   host.innerHTML = `
     <header class="card-head">${icon('target', 'head-ic')}<h2>${esc(t('cy_plan_title'))}</h2></header>
     <p class="note tight">${esc(t('cy_plan_sub', { days: c.daysLeft, pace: c.avgPerDay }))}</p>
-    <div class="plan-rows">${rows}</div>`;
+    <div class="plan-rows">${rows}</div>
+    ${cutHTML(c, limits)}`;
+}
+
+/** Turn "5.3 units a day" into something to do: which appliance, how many hours less. */
+function cutHTML(c, limits) {
+  const { state, t } = app;
+  // The highest limit still reachable from here that the current pace overshoots.
+  const target = [...limits].reverse().map((l) => allowanceFor(l, c))
+    .find((a) => a.over === 0 && a.perDay !== null && a.perDay < c.avgPerDay);
+  if (!target) return '';
+  const perDay = Math.round((c.avgPerDay - target.perDay) * 10) / 10;
+  const catalog = app.appliances.appliances;
+  const items = Object.keys(state.plan.sel).map((id) => catalog.find((a) => a.id === id)).filter(Boolean)
+    .map((a) => resolve(a, state.plan.sel[a.id]));
+  const head = `<p class="cut-title">${icon('bulb')}<b>${esc(t('cy_cut_title', { limit: target.limit }))}</b></p>`;
+  if (!items.length) {
+    return `<div class="cut">${head}<p class="note tight">${esc(t('cy_cut_setup', { perDay }))}</p>
+      <a class="btn btn-small" href="#/plan">${icon('arrow-right')}${esc(t('cy_cut_setup_btn'))}</a></div>`;
+  }
+  const opts = cutOptions(items, perDay).slice(0, 3);
+  if (!opts.length) return `<div class="cut">${head}<p class="note tight">${esc(t('cy_cut_none', { perDay }))}</p></div>`;
+  const name = (id) => { const a = catalog.find((x) => x.id === id); return state.lang === 'ur' ? a.name_ur : a.name_en; };
+  return `<div class="cut">${head}
+    <p class="note tight">${esc(t('cy_cut_sub', { perDay }))}</p>
+    <ul class="cut-list">${opts.map((o) => {
+      const a = catalog.find((x) => x.id === o.id);
+      return `<li><span class="app-emoji" aria-hidden="true">${a.emoji}</span><span>${esc(name(o.id))}${o.qty > 1 ? ` × ${o.qty}` : ''}</span><b class="tnum">${esc(t('cy_cut_hours', { h: o.hoursLess }))}</b></li>`;
+    }).join('')}</ul></div>`;
 }
 
 function openCloseSheet() {

@@ -1,5 +1,5 @@
 {
-  "_note": "Distribution companies supported by BijliHisaab. Since the uniform national tariff, all ex-WAPDA DISCOs share one tariff set (data/tariffs/exwapda/); what differs per DISCO is provincial electricity duty and contact channels. K-Electric is not yet supported (different tariff structure). Add a DISCO by adding an entry here with its tariff_set.",
+  "_note": "Distribution companies supported by BijliHisaab. Under the uniform national tariff all ex-WAPDA DISCOs and K-Electric share one domestic schedule (data/tariffs/exwapda/; for K-Electric see SRO 279(I)/2026 Annex-C); what differs per DISCO is provincial electricity duty and contact channels. Add a DISCO by adding an entry here with its tariff_set.",
   "discos": [
     {
       "id": "lesco",
@@ -11,7 +11,15 @@
       "tariff_set": "exwapda",
       "helpline": "118",
       "website": "https://lesco.gov.pk",
-      "electricity_duty": { "rate_pct": 1.5, "verified": true, "base": ["energy", "fixed"], "note": "Punjab electricity duty, verified arithmetically against a published bill (Rs 23.02 on Rs 1,534.47)." }
+      "electricity_duty": {
+        "rate_pct": 1.5,
+        "verified": true,
+        "base": [
+          "energy",
+          "fixed"
+        ],
+        "note": "Punjab electricity duty, verified arithmetically against a published bill (Rs 23.02 on Rs 1,534.47)."
+      }
     },
     {
       "id": "fesco",
@@ -23,7 +31,15 @@
       "tariff_set": "exwapda",
       "helpline": "118",
       "website": "https://fesco.gov.pk",
-      "electricity_duty": { "rate_pct": 1.5, "verified": true, "base": ["energy", "fixed"], "note": "Punjab electricity duty; same provincial rate as LESCO." }
+      "electricity_duty": {
+        "rate_pct": 1.5,
+        "verified": true,
+        "base": [
+          "energy",
+          "fixed"
+        ],
+        "note": "Punjab electricity duty; same provincial rate as LESCO."
+      }
     },
     {
       "id": "gepco",
@@ -35,7 +51,15 @@
       "tariff_set": "exwapda",
       "helpline": "118",
       "website": "https://gepco.com.pk",
-      "electricity_duty": { "rate_pct": 1.5, "verified": true, "base": ["energy", "fixed"], "note": "Punjab electricity duty; same provincial rate as LESCO." }
+      "electricity_duty": {
+        "rate_pct": 1.5,
+        "verified": true,
+        "base": [
+          "energy",
+          "fixed"
+        ],
+        "note": "Punjab electricity duty; same provincial rate as LESCO."
+      }
     },
     {
       "id": "mepco",
@@ -47,7 +71,15 @@
       "tariff_set": "exwapda",
       "helpline": "118",
       "website": "https://mepco.com.pk",
-      "electricity_duty": { "rate_pct": 1.5, "verified": true, "base": ["energy", "fixed"], "note": "Punjab electricity duty; same provincial rate as LESCO." }
+      "electricity_duty": {
+        "rate_pct": 1.5,
+        "verified": true,
+        "base": [
+          "energy",
+          "fixed"
+        ],
+        "note": "Punjab electricity duty; same provincial rate as LESCO."
+      }
     },
     {
       "id": "iesco",
@@ -59,7 +91,15 @@
       "tariff_set": "exwapda",
       "helpline": "118",
       "website": "https://iesco.com.pk",
-      "electricity_duty": { "rate_pct": 1.5, "verified": false, "base": ["energy", "fixed"], "note": "ASSUMED 1.5%. ICT duty is set federally and is not independently verified; please check your bill and send a PR if it differs." }
+      "electricity_duty": {
+        "rate_pct": 1.5,
+        "verified": false,
+        "base": [
+          "energy",
+          "fixed"
+        ],
+        "note": "ASSUMED 1.5%. ICT duty is set federally and is not independently verified; please check your bill and send a PR if it differs."
+      }
     },
     {
       "id": "pesco",
@@ -71,7 +111,15 @@
       "tariff_set": "exwapda",
       "helpline": "118",
       "website": "https://pesco.com.pk",
-      "electricity_duty": { "rate_pct": 1.5, "verified": false, "base": ["energy", "fixed"], "note": "ASSUMED 1.5%. KPK rate not independently verified; please check your bill and send a PR if it differs." }
+      "electricity_duty": {
+        "rate_pct": 1.5,
+        "verified": false,
+        "base": [
+          "energy",
+          "fixed"
+        ],
+        "note": "ASSUMED 1.5%. KPK rate not independently verified; please check your bill and send a PR if it differs."
+      }
     },
     {
       "id": "hesco",
@@ -83,7 +131,15 @@
       "tariff_set": "exwapda",
       "helpline": "118",
       "website": "https://hesco.gov.pk",
-      "electricity_duty": { "rate_pct": 1.5, "verified": false, "base": ["energy", "fixed"], "note": "ASSUMED 1.5%. Sindh rate not independently verified; please check your bill and send a PR if it differs." }
+      "electricity_duty": {
+        "rate_pct": 1.5,
+        "verified": false,
+        "base": [
+          "energy",
+          "fixed"
+        ],
+        "note": "ASSUMED 1.5%. Sindh rate not independently verified; please check your bill and send a PR if it differs."
+      }
     },
     {
       "id": "sepco",
@@ -95,7 +151,15 @@
       "tariff_set": "exwapda",
       "helpline": "118",
       "website": "https://sepco.com.pk",
-      "electricity_duty": { "rate_pct": 1.5, "verified": false, "base": ["energy", "fixed"], "note": "ASSUMED 1.5%. Sindh rate not independently verified; please check your bill and send a PR if it differs." }
+      "electricity_duty": {
+        "rate_pct": 1.5,
+        "verified": false,
+        "base": [
+          "energy",
+          "fixed"
+        ],
+        "note": "ASSUMED 1.5%. Sindh rate not independently verified; please check your bill and send a PR if it differs."
+      }
     },
     {
       "id": "qesco",
@@ -107,7 +171,51 @@
       "tariff_set": "exwapda",
       "helpline": "118",
       "website": "https://qesco.com.pk",
-      "electricity_duty": { "rate_pct": 1.5, "verified": false, "base": ["energy", "fixed"], "note": "ASSUMED 1.5%. Balochistan rate not independently verified; please check your bill and send a PR if it differs." }
+      "electricity_duty": {
+        "rate_pct": 1.5,
+        "verified": false,
+        "base": [
+          "energy",
+          "fixed"
+        ],
+        "note": "ASSUMED 1.5%. Balochistan rate not independently verified; please check your bill and send a PR if it differs."
+      }
+    },
+    {
+      "id": "kelectric",
+      "name_en": "K-Electric",
+      "name_ur": "کے الیکٹرک",
+      "full_name_en": "K-Electric (Karachi)",
+      "region_en": "Sindh",
+      "region_ur": "سندھ (کراچی)",
+      "tariff_set": "exwapda",
+      "helpline": "118",
+      "website": "https://www.ke.com.pk",
+      "electricity_duty": {
+        "rate_pct": 1.5,
+        "verified": false,
+        "base": [
+          "energy",
+          "fixed"
+        ],
+        "note": "ASSUMED 1.5%. K-Electric bills still list an Electricity Duty line; the current Sindh rate is not independently verified. Please check your bill and send a PR if it differs."
+      },
+      "tariff_note_en": "K-Electric bills the same national domestic slab rates and fixed charges as the other companies (SRO 279(I)/2026, Annex-C), and the national FCA applies. Not modelled: the KMC municipal charge (MUCT) and K-Electric's late-payment surcharge. Electricity duty is assumed at 1.5%.",
+      "tariff_note_ur": "کے الیکٹرک بھی وہی قومی سلیب شرحیں اور فکسڈ چارجز لگاتا ہے (ایس آر او 279(I)/2026، ضمیمہ سی) اور قومی ایف سی اے لاگو ہوتا ہے۔ شامل نہیں: کے ایم سی میونسپل چارج (MUCT) اور دیر سے ادائیگی کا سرچارج۔ الیکٹرسٹی ڈیوٹی 1.5% فرض کی گئی ہے۔",
+      "sources": [
+        {
+          "title": "NEPRA SRO 279(I)/2026, Annex-C: GoP applicable schedule of tariff for K-Electric consumers (A-1 residential)",
+          "url": "https://nepra.org.pk/tariff/Tariff/Notifications/2026/02%20Feb/S.R.O.%20279(1)2026%20dated%2012-02-2026.pdf"
+        },
+        {
+          "title": "The News: NEPRA approves Rs 0.75/unit FCA nationwide, K-Electric included under the uniform FCA",
+          "url": "https://www.thenews.com.pk/story/1430752-nepra-approves-re075-per-unit-power-tariff-hike-nationwide"
+        },
+        {
+          "title": "K-Electric: Know your bill (bill lines, helpline 118 / 021-99000)",
+          "url": "https://www.ke.com.pk/customer-services/know-your-bill/"
+        }
+      ]
     }
   ]
 }

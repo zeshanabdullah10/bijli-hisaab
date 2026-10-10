@@ -1,0 +1,108 @@
+{
+  "_note": "Solar sizing inputs. Yields are long-term averages for crystalline-silicon panels at optimum tilt (Global Solar Atlas PVOUT, data v1.7); flat, dusty or shaded rooftops produce a few percent less, and summer months produce more than winter. Costs are on-grid installed prices reported in the press; quotes vary with panel and inverter grade, so users enter their own. daytime_share is not measured data: it is the user's own answer to 'when do you use most power', shown to them as a percentage.",
+  "verified_on": "2026-10-10",
+  "sources": [
+    {
+      "id": "gsa",
+      "title": "Global Solar Atlas (World Bank / Solargis), PVOUT long-term averages per city",
+      "url": "https://globalsolaratlas.info/map?c=30.3753,69.3451,6"
+    },
+    {
+      "id": "mdpi",
+      "title": "Cross-check: fixed-tilt PV final yields for Pakistani cities (MDPI Engineering Proceedings 20(1):46)",
+      "url": "https://www.mdpi.com/2673-4591/20/1/46"
+    },
+    {
+      "id": "pp_jun26",
+      "title": "ProPakistani, 9 Jun 2026: 5-15 kW on-grid system prices up by as much as Rs 200,000; 10 kW from Rs 900,000 to Rs 1.1 million",
+      "url": "https://propakistani.pk/2026/06/09/5kw-to-15kw-solar-systems-see-major-price-hikes/"
+    },
+    {
+      "id": "tribune",
+      "title": "Express Tribune: 5 kW about Rs 600,000, 10 kW about Rs 1.15 million; grade-A panels and branded inverters Rs 100-120 per watt",
+      "url": "https://tribune.com.pk/story/2535024/solar-panel-prices-drop-in-pakistan-after-new-govt-policy"
+    },
+    {
+      "id": "netbilling",
+      "title": "Profit, 10 Feb 2026: NEPRA ends net metering for new solar consumers, moves to net billing",
+      "url": "https://profit.pakistantoday.com.pk/2026/02/10/pakistans-power-regulator-ends-net-metering-for-solar-consumers-shifts-to-net-billing-model/"
+    }
+  ],
+  "cities": [
+    {
+      "id": "lahore",
+      "name_en": "Lahore",
+      "name_ur": "لاہور",
+      "kwh_per_kwp_year": 1466,
+      "source": "gsa"
+    },
+    {
+      "id": "karachi",
+      "name_en": "Karachi",
+      "name_ur": "کراچی",
+      "kwh_per_kwp_year": 1697,
+      "source": "gsa"
+    },
+    {
+      "id": "islamabad",
+      "name_en": "Islamabad",
+      "name_ur": "اسلام آباد",
+      "kwh_per_kwp_year": 1559,
+      "source": "gsa"
+    },
+    {
+      "id": "multan",
+      "name_en": "Multan",
+      "name_ur": "ملتان",
+      "kwh_per_kwp_year": 1608,
+      "source": "gsa"
+    },
+    {
+      "id": "peshawar",
+      "name_en": "Peshawar",
+      "name_ur": "پشاور",
+      "kwh_per_kwp_year": 1502,
+      "source": "gsa"
+    },
+    {
+      "id": "quetta",
+      "name_en": "Quetta",
+      "name_ur": "کوئٹہ",
+      "kwh_per_kwp_year": 1936,
+      "source": "gsa"
+    }
+  ],
+  "disco_city": {
+    "lesco": "lahore",
+    "fesco": "lahore",
+    "gepco": "lahore",
+    "mepco": "multan",
+    "iesco": "islamabad",
+    "pesco": "peshawar",
+    "hesco": "karachi",
+    "sepco": "karachi",
+    "qesco": "quetta",
+    "kelectric": "karachi"
+  },
+  "cost_per_kw": {
+    "default": 130000,
+    "low": 110000,
+    "high": 150000,
+    "sources": [
+      "pp_jun26",
+      "tribune"
+    ]
+  },
+  "sizes_kw": [
+    2,
+    3,
+    5,
+    7,
+    10
+  ],
+  "daytime_share": {
+    "evening": 0.25,
+    "mixed": 0.4,
+    "daytime": 0.6
+  }
+}

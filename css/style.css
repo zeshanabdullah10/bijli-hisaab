@@ -1297,3 +1297,43 @@ dialog.sheet[open] { animation: sheet-in 0.4s var(--ease-out); }
 .outlook-units { font-size: 0.7rem; color: var(--text-3); }
 .outlook-bill { font-size: 0.82rem; font-weight: 600; margin-top: 4px; }
 .outlook-col .tag { margin: 4px 0 0; }
+.cut { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--hairline); }
+.cut-title { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.cut-title svg { width: 18px; height: 18px; color: var(--accent-text); }
+.cut .btn-small { margin-top: 10px; }
+.cut-list { display: grid; gap: 6px; margin-top: 8px; }
+.cut-list li { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: var(--surface-2); font-size: 0.9rem; }
+.cut-list .app-emoji { width: 30px; height: 30px; font-size: 1rem; }
+.cut-list b { margin-inline-start: auto; font-size: 0.86rem; white-space: nowrap; }
+
+/* ---- bill scan ------------------------------------------------------------------------------ */
+
+.scan-btn { width: 100%; justify-content: center; margin: 4px 0 12px; }
+.scan-thumb { display: block; width: 100%; max-height: 160px; object-fit: cover; object-position: top; border-radius: 14px; margin: 6px 0 12px; background: var(--surface-2); }
+.scan-progress { height: 8px; border-radius: var(--radius-pill); background: var(--surface-3); overflow: hidden; margin: 10px 0; }
+.scan-progress span { display: block; height: 100%; width: 4%; background: var(--volt); border-radius: inherit; transition: width 0.3s var(--ease-out); }
+.field input.is-missing { box-shadow: inset 0 0 0 1.5px var(--volt); }
+.check-row { display: flex; align-items: center; gap: 10px; margin-top: 16px; font-size: 0.9rem; cursor: pointer; }
+.check-row input { width: 20px; height: 20px; accent-color: var(--volt); }
+
+/* ---- solar sizing --------------------------------------------------------------------------- */
+
+.solar-size .btn { margin-top: 12px; }
+.ss-now { font-size: 0.9rem; font-weight: 600; margin: 16px 2px 8px; }
+.ss-rows { display: grid; gap: 8px; }
+.ss-row { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; background: var(--surface-2); }
+.ss-row.is-best { box-shadow: inset 0 0 0 2px var(--good); }
+.ss-kw { text-align: center; min-width: 40px; }
+.ss-kw b { display: block; font-family: var(--display); font-size: 1.4rem; line-height: 1.1; }
+.ss-kw span { font-size: 0.7rem; color: var(--text-3); }
+.ss-body { flex: 1; min-width: 0; }
+.ss-main { font-size: 0.92rem; font-weight: 700; }
+.ss-save { display: block; font-size: 0.8rem; font-weight: 600; color: var(--good); }
+.ss-sub { font-size: 0.74rem; color: var(--text-2); margin-top: 2px; }
+.ss-pay { text-align: end; display: grid; justify-items: end; gap: 1px; }
+.ss-pay span { font-size: 0.68rem; color: var(--text-3); }
+.ss-pay b { font-size: 0.9rem; white-space: nowrap; }
+.tag.good { color: var(--good); background: var(--good-soft); margin: 2px 0 0; }
+.ss-sources { margin-top: 10px; font-size: 0.74rem; display: grid; gap: 4px; }
+.disco-note { display: flex; gap: 8px; align-items: flex-start; margin-top: 12px; }
+.disco-note svg { width: 16px; height: 16px; flex: none; margin-top: 3px; }

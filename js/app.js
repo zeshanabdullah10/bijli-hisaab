@@ -13,6 +13,7 @@ export const app = {
   discos: null,
   appliances: null,
   learn: null,
+  solarData: null,
   t: null,
 
   /** Mutate state, persist, and tell the active view to refresh values. */

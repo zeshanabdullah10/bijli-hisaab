@@ -72,7 +72,7 @@ function buildSettings() {
           <input type="number" inputmode="decimal" id="s-fpa" class="row-input tnum" min="-10" max="20" step="0.01" placeholder="auto" value="${esc(p.fpa)}"></div>
       </div>
       <p class="group-hint">${esc(t('fpa_hint'))}</p>
-      <p class="group-hint">${icon('info-circle')} ${esc(t('ke_note'))}</p>
+      ${app.disco.tariff_note_en ? `<p class="group-hint">${icon('info-circle')} ${esc(state.lang === 'ur' ? app.disco.tariff_note_ur : app.disco.tariff_note_en)}</p>` : ''}
 
       <p class="sheet-label">${esc(t('set_data'))}</p>
       <div class="action-row">

@@ -51,3 +51,22 @@ export function priceAppliances(ctx, selected, rate) {
     }).sort((a, b) => b.kwh - a.kwh),
   };
 }
+
+/**
+ * How to shave `perDay` units off each day: for every appliance, the hours
+ * less per day that alone would do it. Only appliances that run long enough
+ * to give that up are returned, easiest (fewest hours) first.
+ * @param {Array} selected  resolved appliances (see resolve)
+ * @param {number} perDay   units (kWh) a day to cut
+ */
+export function cutOptions(selected, perDay) {
+  if (!(perDay > 0)) return [];
+  return selected
+    .map((a) => {
+      const kwPerHour = (a.qty * a.watts * a.duty) / 1000;
+      const hoursLess = kwPerHour > 0 ? Math.ceil((perDay / kwPerHour) * 10) / 10 : Infinity;
+      return { id: a.id, qty: a.qty, hoursLess, hours: a.hours };
+    })
+    .filter((o) => o.hoursLess <= o.hours)
+    .sort((a, b) => a.hoursLess - b.hoursLess);
+}

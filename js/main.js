@@ -72,14 +72,16 @@ async function route() {
 // ---------------------------------------------------------------- boot
 
 async function boot() {
-  const [discos, appliances, learn] = await Promise.all([
+  const [discos, appliances, learn, solar] = await Promise.all([
     fetch('data/discos.json').then((r) => r.json()),
     fetch('data/appliances.json').then((r) => r.json()),
     fetch('data/learn.json').then((r) => r.json()),
+    fetch('data/solar.json').then((r) => r.json()),
   ]);
   app.discos = discos;
   app.appliances = appliances;
   app.learn = learn;
+  app.solarData = solar;
   await app.setDisco(app.state.profile.discoId);
 
   applyTheme();

@@ -1,6 +1,6 @@
 {
   "tariff_set": "exwapda",
-  "applies_to": "All ex-WAPDA DISCOs (LESCO, FESCO, GEPCO, MEPCO, IESCO, PESCO, HESCO, SEPCO, QESCO) under the uniform national tariff. K-Electric is NOT covered.",
+  "applies_to": "All ex-WAPDA DISCOs (LESCO, FESCO, GEPCO, MEPCO, IESCO, PESCO, HESCO, SEPCO, QESCO) and K-Electric under the uniform national tariff (K-Electric: SRO 279(I)/2026 Annex-C carries the same A-1 residential rates and fixed charges).",
   "period_label": "2026-10",
   "effective_date": "2026-02-12",
   "verified_on": "2026-10-01",
@@ -10,6 +10,11 @@
       "id": "sro279",
       "title": "SRO 279(I)/2026 domestic slab rates, fixed charges, lifeline & minimum charges (via BijliBills NEPRA Tariff 2026 Explained)",
       "url": "https://bijlibills.com/nepra-tariff-2026-explained/"
+    },
+    {
+      "id": "sro279_nepra",
+      "title": "NEPRA SRO 279(I)/2026 (12 Feb 2026), XWDISCOs and K-Electric; Annex-C gives K-Electric's A-1 residential schedule, identical to the ex-WAPDA rates",
+      "url": "https://nepra.org.pk/tariff/Tariff/Notifications/2026/02%20Feb/S.R.O.%20279(1)2026%20dated%2012-02-2026.pdf"
     },
     {
       "id": "bco",

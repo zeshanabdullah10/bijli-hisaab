@@ -8,6 +8,8 @@ import { buildInsights, compareClasses, diagnoseBill } from '../insights.js';
 import { fmt, fmt2 } from '../i18n.js';
 import { el, $$, esc, icon, fillSlider, num, copyText } from '../ui.js';
 import { openSettings } from './settings.js';
+import { startScan } from './scan.js';
+import { openSolarSizer } from './solarsize.js';
 
 // Bill-line id → glossary entry id (Learn tab).
 const GLOSSARY = {
@@ -234,8 +236,12 @@ function renderBreakdown(bill, ur) {
 }
 
 function renderWarnings(bill) {
-  const { t } = app;
-  el('warnings').innerHTML = bill.notices.map((n) => {
+  const { t, state } = app;
+  const d = app.disco;
+  const discoNote = d.tariff_note_en
+    ? `<p class="note disco-note">${icon('info-circle')}<span>${esc(state.lang === 'ur' ? d.tariff_note_ur : d.tariff_note_en)}</span></p>`
+    : '';
+  el('warnings').innerHTML = discoNote + bill.notices.map((n) => {
     const key = n.code === 'over_cap' ? `notice_over_cap_${n.params.type}` : `notice_${n.code}`;
     const params = { ...n.params, threshold: fmt(n.params.threshold ?? 0) };
     return `<div class="warn-item">${icon('alert-triangle')}<span>${esc(t(key, params))}</span></div>`;
@@ -334,6 +340,7 @@ function renderSolar() {
   const s = state.solar;
   const nb = s.mode === 'net_billing';
   el('solar-panel').hidden = !s.enabled;
+  el('solar-size-card').hidden = s.enabled;
   el('solar-strip').hidden = !s.enabled;
   el('solar-buyback-cell').hidden = !nb;
   el('solar-buyback-peak-cell').hidden = !nb;
@@ -410,6 +417,8 @@ function wire() {
   el('actual-input').addEventListener('input', (e) => app.change((s) => { s.actual = e.target.value; }));
   el('budget-input').addEventListener('input', (e) => app.change((s) => { s.budget = num(e.target.value); }));
   el('share-btn').addEventListener('click', share);
+  el('scan-btn').addEventListener('click', startScan);
+  el('solar-size-btn').addEventListener('click', openSolarSizer);
   el('link-btn').addEventListener('click', async () => {
     if (await copyText(scenarioLink())) app.toast(app.t('link_copied'));
   });

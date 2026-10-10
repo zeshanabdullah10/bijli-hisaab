@@ -9,6 +9,8 @@ domestic electricity consumers. It does four jobs:
 |---|---|
 | **Bill** | Itemises your bill line by line (slabs, fixed charges, financing surcharge, QTA, FPA, duty, GST, TV fee, income tax) with a formula and source on every line. Shows where each rupee goes, the **slab cliff**, what other consumer classes would pay, a budget planner, and plain-English **insights** ("5 units from a Rs 1,556 jump"). |
 | **Track** | A meter tracker. Log readings every few days; it charts the cycle against the slab lines, projects the month's units and bill, flags a heatwave in your recent pace, warns Protected/Lifeline consumers **before** a month tips them over the cap (and what losing it costs over six months), and tells you the **units per day** that keep you under the next cliff. Calendar reminders (.ics) to read the meter, no account needed. Close the cycle to log it, then follow your six-month **Protected** and twelve-month **Lifeline** progress, a seasonal **outlook** for the coming months and a year-on-year comparison. |
+| **Bill → Scan** | Photograph your paper bill: it is read on the phone (Tesseract OCR, downloaded once from a CDN, the photo is never uploaded), and units, amount, billing month and sanctioned load are filled in after you confirm them. |
+| **Bill → Solar** | "Is solar worth it?": compares 2-10 kW systems on net-billing terms for your usage, city (Global Solar Atlas yields) and installed cost, with bill, saving and payback for each. |
 | **Appliances** | Pick what runs at home (or start from a preset). Each appliance is priced against the real tariff, cliffs included: what it costs per hour, what you save by switching it off, what one hour less a day is worth. One tap sends the total to the Bill tab. |
 | **Learn** | A searchable glossary of every bill line (linked from the bill), money-saving tips, and a step-by-step guide for disputing a bill. |
 
@@ -92,6 +94,10 @@ To update:
 3. Run `npm test` — the schema test rejects uncited data.
 4. Open a PR. Anything without a source link gets rejected.
 
+A scheduled workflow (`.github/workflows/tariff-freshness.yml`) runs on the 5th
+of every month and opens a `tariff-update` issue with a checklist whenever a
+tariff file was last verified more than five weeks ago.
+
 Adding a DISCO: add an entry to `data/discos.json` (with its provincial
 electricity duty), create `data/tariffs/<id>/<period>.json`, and add the id to
 the DISCO picker in `index.html`. The engine is DISCO-agnostic.
@@ -99,7 +105,7 @@ the DISCO picker in `index.html`. The engine is DISCO-agnostic.
 ## What is modelled (and what is not)
 
 Modelled: domestic single-phase for all nine ex-WAPDA DISCOs (LESCO, FESCO,
-GEPCO, MEPCO, IESCO, PESCO, HESCO, SEPCO, QESCO) - unprotected / protected /
+GEPCO, MEPCO, IESCO, PESCO, HESCO, SEPCO, QESCO) and K-Electric - unprotected / protected /
 lifeline slabs, per-kW fixed charges, financing-cost surcharge, QTA, FPA
 (default + your bill's exact rate), provincial electricity duty, GST, TV
 licence fee, income tax for non-filers above Rs 25,000, minimum charge, the
@@ -114,8 +120,7 @@ connection regimes:
   The Solar card shows with/without-solar bills, monthly saving and payback.
 
 **Not** modelled: arrears, meter rent, municipal taxes (MUCT etc.), estimated
-readings, three-phase/TOU meters, commercial & agricultural tariffs, K-Electric
-(different tariff structure - welcome as a contribution). Provincial
+readings, three-phase/TOU meters, commercial & agricultural tariffs, K-Electric's KMC municipal charge (MUCT). Provincial
 electricity duty is verified at 1.5% for Punjab; other regions are assumed
 1.5% pending verified PRs. A computed total within a few percent of the paper
 bill is the expected accuracy. The app says so on every screen - please keep
@@ -132,11 +137,13 @@ A DISCO that ever gets its own rates again just points at its own tariff set.
 
 - [x] All ex-WAPDA DISCOs
 - [x] Solar: net metering + net billing (Prosumer Regulations 2026)
-- [ ] K-Electric (different tariff structure)
+- [x] K-Electric (same national schedule per SRO 279(I)/2026 Annex-C; MUCT not modelled)
 - [x] Protected-status streak tracker (200 units x 6 months)
 - [x] Appliance estimator ("your AC at 8h/day = N units/month")
 - [x] Meter tracker with projection and daily allowance
-- [ ] Monthly FPA auto-reminder via GitHub Action -> PR
+- [x] Monthly tariff-freshness check via GitHub Action -> issue (`tools/freshness.mjs`)
+- [x] Bill photo scan (on-device OCR)
+- [x] Solar sizing
 - [ ] GasHisaab - same engine, SNGPL/SSGC winter bills
 
 ## Sources

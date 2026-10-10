@@ -126,9 +126,10 @@ test('crossing the protection cap reprices the whole month as unprotected', () =
   assert.ok(lf.warnings.length >= 1);
 });
 
-test('all nine ex-WAPDA DISCOs reference a shared tariff set with duty metadata', () => {
+test('nine ex-WAPDA DISCOs and K-Electric reference the shared tariff set with duty metadata', () => {
   const ids = discos.discos.map((d) => d.id);
-  assert.equal(ids.length, 9);
+  assert.equal(ids.length, 10);
+  assert.ok(ids.includes('kelectric'));
   for (const d of discos.discos) {
     assert.equal(d.tariff_set, 'exwapda');
     assert.equal(typeof d.electricity_duty.rate_pct, 'number');
@@ -249,3 +250,22 @@ test('audit fixture — a fully worked bill stays consistent with its recorded t
 function round(n) {
   return Math.round(n * 100) / 100;
 }
+
+test('K-Electric cites the SRO annex that puts it on the national schedule', () => {
+  const ke = discos.discos.find((d) => d.id === 'kelectric');
+  assert.ok(ke.sources.some((s) => /nepra\.org\.pk/.test(s.url) && /Annex-C/.test(s.title)));
+  assert.ok(ke.tariff_note_en && ke.tariff_note_ur);
+  assert.equal(ke.electricity_duty.verified, false);
+});
+
+test('solar data: every city yield cites a source and every DISCO maps to a city', async () => {
+  const solar = JSON.parse(readFileSync(new URL('../data/solar.json', import.meta.url), 'utf8'));
+  const ids = new Set(solar.sources.map((s) => s.id));
+  for (const c of solar.cities) {
+    assert.ok(ids.has(c.source), c.id);
+    assert.ok(c.kwh_per_kwp_year > 1000 && c.kwh_per_kwp_year < 2500, c.id);
+  }
+  for (const s of solar.cost_per_kw.sources) assert.ok(ids.has(s));
+  const cityIds = new Set(solar.cities.map((c) => c.id));
+  for (const d of discos.discos) assert.ok(cityIds.has(solar.disco_city[d.id]), d.id);
+});

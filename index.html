@@ -11,7 +11,7 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon-180.png">
   <link rel="preload" href="fonts/spacegrotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.css?v=0.5.0">
+  <link rel="stylesheet" href="css/style.css?v=0.6.0">
   <script>
     // Theme flash guard: set data-theme before first paint.
     (function () {
@@ -230,6 +230,12 @@
           <p class="note" data-i18n="compare_note">Protected and lifeline status depends on your six- or twelve-month history, not on a choice you make.</p>
         </section>
 
+        <section class="card solar-size" id="solar-size-card">
+          <header class="card-head"><svg class="head-ic" aria-hidden="true"><use href="#i-sun"/></svg><h2 data-i18n="ss_card_title">Thinking about solar?</h2></header>
+          <p class="note tight" data-i18n="ss_card_body">See which system size pays for itself soonest for your home.</p>
+          <button class="btn btn-secondary" id="solar-size-btn" type="button"><svg aria-hidden="true"><use href="#i-arrow-right"/></svg><span data-i18n="ss_card_btn">Size a solar system</span></button>
+        </section>
+
         <section class="card check">
           <header class="card-head"><svg class="head-ic" aria-hidden="true"><use href="#i-search"/></svg><h2 data-i18n="check_title">Reality check</h2></header>
 
@@ -243,6 +249,7 @@
 
           <div class="check-divider"></div>
           <div class="subhead" data-i18n="audit_title">Audit your paper bill</div>
+          <button class="btn btn-secondary scan-btn" id="scan-btn" type="button"><svg aria-hidden="true"><use href="#i-photo"/></svg><span data-i18n="scan_btn">Scan your bill</span></button>
           <div class="row">
             <svg class="row-ic" aria-hidden="true"><use href="#i-receipt"/></svg>
             <label class="row-label" for="actual-input" data-i18n="actual_bill_label">Amount on your bill (Rs)</label>
@@ -287,6 +294,6 @@
   <dialog id="close-sheet" class="sheet" aria-labelledby="close-title"></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script type="module" src="js/main.js?v=0.5.0"></script>
+  <script type="module" src="js/main.js?v=0.6.0"></script>
 </body>
 </html>

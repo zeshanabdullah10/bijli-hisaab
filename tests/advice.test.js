@@ -251,3 +251,15 @@ test('ics: a reminder every N days up to the cycle end, plus the end itself', ()
   assert.match(ics, /END:VCALENDAR\r\n$/);
   assert.equal(new Set([...ics.matchAll(/UID:(\S+)/g)].map((m) => m[1])).size, 4);
 });
+
+test('cutOptions: hours less a day per appliance, easiest first, feasible only', async () => {
+  const { cutOptions } = await import('../js/appliances.js');
+  const items = [
+    { id: 'ac', qty: 1, watts: 1600, duty: 0.75, hours: 8 },   // 1.2 kWh/h
+    { id: 'fan', qty: 3, watts: 75, duty: 1, hours: 12 },      // 0.225 kWh/h
+    { id: 'tv', qty: 1, watts: 80, duty: 1, hours: 5 },        // 0.08 kWh/h
+  ];
+  const o = cutOptions(items, 2.4);
+  assert.deepEqual(o.map((x) => [x.id, x.hoursLess]), [['ac', 2], ['fan', 10.7]]);
+  assert.deepEqual(cutOptions(items, 0), []);
+});
