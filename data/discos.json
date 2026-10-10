@@ -18,7 +18,18 @@
           "energy",
           "fixed"
         ],
-        "note": "Punjab electricity duty, verified arithmetically against a published bill (Rs 23.02 on Rs 1,534.47)."
+        "note": "Not on bills since July 2025: the federal government stopped collecting provincial electricity duty through DISCO bills. The statutory rate (1.5% here) applies if your bill still shows a duty line; switch it on in Settings. Earlier note: Punjab electricity duty, verified arithmetically against a published bill (Rs 23.02 on Rs 1,534.47).",
+        "on_bill": false,
+        "on_bill_sources": [
+          {
+            "title": "APP, 30 Jun 2025: federal government to discontinue electricity duty collection through electricity bills from July 2025",
+            "url": "https://www.app.com.pk/national/federal-government-to-discontinue-electricity-duty-collection-through-electricity-bills/"
+          },
+          {
+            "title": "The News, 30 Jun 2025: Centre ends provincial electricity duty on power bills from July 1",
+            "url": "https://www.thenews.pk/latest/1325669-centre-ends-provincial-electricity-duty-on-power-bills-from-july-1"
+          }
+        ]
       }
     },
     {
@@ -38,7 +49,18 @@
           "energy",
           "fixed"
         ],
-        "note": "Punjab electricity duty; same provincial rate as LESCO."
+        "note": "Not on bills since July 2025: the federal government stopped collecting provincial electricity duty through DISCO bills. The statutory rate (1.5% here) applies if your bill still shows a duty line; switch it on in Settings. Earlier note: Punjab electricity duty; same provincial rate as LESCO.",
+        "on_bill": false,
+        "on_bill_sources": [
+          {
+            "title": "APP, 30 Jun 2025: federal government to discontinue electricity duty collection through electricity bills from July 2025",
+            "url": "https://www.app.com.pk/national/federal-government-to-discontinue-electricity-duty-collection-through-electricity-bills/"
+          },
+          {
+            "title": "The News, 30 Jun 2025: Centre ends provincial electricity duty on power bills from July 1",
+            "url": "https://www.thenews.pk/latest/1325669-centre-ends-provincial-electricity-duty-on-power-bills-from-july-1"
+          }
+        ]
       }
     },
     {
@@ -58,7 +80,18 @@
           "energy",
           "fixed"
         ],
-        "note": "Punjab electricity duty; same provincial rate as LESCO."
+        "note": "Not on bills since July 2025: the federal government stopped collecting provincial electricity duty through DISCO bills. The statutory rate (1.5% here) applies if your bill still shows a duty line; switch it on in Settings. Earlier note: Punjab electricity duty; same provincial rate as LESCO.",
+        "on_bill": false,
+        "on_bill_sources": [
+          {
+            "title": "APP, 30 Jun 2025: federal government to discontinue electricity duty collection through electricity bills from July 2025",
+            "url": "https://www.app.com.pk/national/federal-government-to-discontinue-electricity-duty-collection-through-electricity-bills/"
+          },
+          {
+            "title": "The News, 30 Jun 2025: Centre ends provincial electricity duty on power bills from July 1",
+            "url": "https://www.thenews.pk/latest/1325669-centre-ends-provincial-electricity-duty-on-power-bills-from-july-1"
+          }
+        ]
       }
     },
     {
@@ -78,7 +111,18 @@
           "energy",
           "fixed"
         ],
-        "note": "Punjab electricity duty; same provincial rate as LESCO."
+        "note": "Not on bills since July 2025: the federal government stopped collecting provincial electricity duty through DISCO bills. The statutory rate (1.5% here) applies if your bill still shows a duty line; switch it on in Settings. Earlier note: Punjab electricity duty; same provincial rate as LESCO.",
+        "on_bill": false,
+        "on_bill_sources": [
+          {
+            "title": "APP, 30 Jun 2025: federal government to discontinue electricity duty collection through electricity bills from July 2025",
+            "url": "https://www.app.com.pk/national/federal-government-to-discontinue-electricity-duty-collection-through-electricity-bills/"
+          },
+          {
+            "title": "The News, 30 Jun 2025: Centre ends provincial electricity duty on power bills from July 1",
+            "url": "https://www.thenews.pk/latest/1325669-centre-ends-provincial-electricity-duty-on-power-bills-from-july-1"
+          }
+        ]
       }
     },
     {
@@ -98,7 +142,18 @@
           "energy",
           "fixed"
         ],
-        "note": "ASSUMED 1.5%. ICT duty is set federally and is not independently verified; please check your bill and send a PR if it differs."
+        "note": "Not on bills since July 2025: the federal government stopped collecting provincial electricity duty through DISCO bills. The statutory rate (1.5% here) applies if your bill still shows a duty line; switch it on in Settings. Earlier note: ASSUMED 1.5%. ICT duty is set federally and is not independently verified; please check your bill and send a PR if it differs.",
+        "on_bill": false,
+        "on_bill_sources": [
+          {
+            "title": "APP, 30 Jun 2025: federal government to discontinue electricity duty collection through electricity bills from July 2025",
+            "url": "https://www.app.com.pk/national/federal-government-to-discontinue-electricity-duty-collection-through-electricity-bills/"
+          },
+          {
+            "title": "The News, 30 Jun 2025: Centre ends provincial electricity duty on power bills from July 1",
+            "url": "https://www.thenews.pk/latest/1325669-centre-ends-provincial-electricity-duty-on-power-bills-from-july-1"
+          }
+        ]
       }
     },
     {
@@ -118,7 +173,18 @@
           "energy",
           "fixed"
         ],
-        "note": "ASSUMED 1.5%. KPK rate not independently verified; please check your bill and send a PR if it differs."
+        "note": "Not on bills since July 2025: the federal government stopped collecting provincial electricity duty through DISCO bills. The statutory rate (1.5% here) applies if your bill still shows a duty line; switch it on in Settings. Earlier note: ASSUMED 1.5%. KPK rate not independently verified; please check your bill and send a PR if it differs.",
+        "on_bill": false,
+        "on_bill_sources": [
+          {
+            "title": "APP, 30 Jun 2025: federal government to discontinue electricity duty collection through electricity bills from July 2025",
+            "url": "https://www.app.com.pk/national/federal-government-to-discontinue-electricity-duty-collection-through-electricity-bills/"
+          },
+          {
+            "title": "The News, 30 Jun 2025: Centre ends provincial electricity duty on power bills from July 1",
+            "url": "https://www.thenews.pk/latest/1325669-centre-ends-provincial-electricity-duty-on-power-bills-from-july-1"
+          }
+        ]
       }
     },
     {
@@ -138,7 +204,18 @@
           "energy",
           "fixed"
         ],
-        "note": "ASSUMED 1.5%. Sindh rate not independently verified; please check your bill and send a PR if it differs."
+        "note": "Not on bills since July 2025: the federal government stopped collecting provincial electricity duty through DISCO bills. The statutory rate (1.5% here) applies if your bill still shows a duty line; switch it on in Settings. Earlier note: ASSUMED 1.5%. Sindh rate not independently verified; please check your bill and send a PR if it differs.",
+        "on_bill": false,
+        "on_bill_sources": [
+          {
+            "title": "APP, 30 Jun 2025: federal government to discontinue electricity duty collection through electricity bills from July 2025",
+            "url": "https://www.app.com.pk/national/federal-government-to-discontinue-electricity-duty-collection-through-electricity-bills/"
+          },
+          {
+            "title": "The News, 30 Jun 2025: Centre ends provincial electricity duty on power bills from July 1",
+            "url": "https://www.thenews.pk/latest/1325669-centre-ends-provincial-electricity-duty-on-power-bills-from-july-1"
+          }
+        ]
       }
     },
     {
@@ -158,7 +235,18 @@
           "energy",
           "fixed"
         ],
-        "note": "ASSUMED 1.5%. Sindh rate not independently verified; please check your bill and send a PR if it differs."
+        "note": "Not on bills since July 2025: the federal government stopped collecting provincial electricity duty through DISCO bills. The statutory rate (1.5% here) applies if your bill still shows a duty line; switch it on in Settings. Earlier note: ASSUMED 1.5%. Sindh rate not independently verified; please check your bill and send a PR if it differs.",
+        "on_bill": false,
+        "on_bill_sources": [
+          {
+            "title": "APP, 30 Jun 2025: federal government to discontinue electricity duty collection through electricity bills from July 2025",
+            "url": "https://www.app.com.pk/national/federal-government-to-discontinue-electricity-duty-collection-through-electricity-bills/"
+          },
+          {
+            "title": "The News, 30 Jun 2025: Centre ends provincial electricity duty on power bills from July 1",
+            "url": "https://www.thenews.pk/latest/1325669-centre-ends-provincial-electricity-duty-on-power-bills-from-july-1"
+          }
+        ]
       }
     },
     {
@@ -178,7 +266,18 @@
           "energy",
           "fixed"
         ],
-        "note": "ASSUMED 1.5%. Balochistan rate not independently verified; please check your bill and send a PR if it differs."
+        "note": "Not on bills since July 2025: the federal government stopped collecting provincial electricity duty through DISCO bills. The statutory rate (1.5% here) applies if your bill still shows a duty line; switch it on in Settings. Earlier note: ASSUMED 1.5%. Balochistan rate not independently verified; please check your bill and send a PR if it differs.",
+        "on_bill": false,
+        "on_bill_sources": [
+          {
+            "title": "APP, 30 Jun 2025: federal government to discontinue electricity duty collection through electricity bills from July 2025",
+            "url": "https://www.app.com.pk/national/federal-government-to-discontinue-electricity-duty-collection-through-electricity-bills/"
+          },
+          {
+            "title": "The News, 30 Jun 2025: Centre ends provincial electricity duty on power bills from July 1",
+            "url": "https://www.thenews.pk/latest/1325669-centre-ends-provincial-electricity-duty-on-power-bills-from-july-1"
+          }
+        ]
       }
     },
     {
@@ -198,7 +297,14 @@
           "energy",
           "fixed"
         ],
-        "note": "ASSUMED 1.5%. K-Electric bills still list an Electricity Duty line; the current Sindh rate is not independently verified. Please check your bill and send a PR if it differs."
+        "note": "K-Electric was still collecting electricity duty for Sindh through bills in late 2025 (1.5% domestic). Not confirmed on a 2026 bill; if yours has no duty line, switch it off in Settings.",
+        "on_bill": true,
+        "on_bill_sources": [
+          {
+            "title": "Profit: K-Electric to keep remitting electricity duty collected through monthly bills to Sindh (1.5% domestic)",
+            "url": "https://profit.pakistantoday.com.pk/?p=206423"
+          }
+        ]
       },
       "tariff_note_en": "K-Electric bills the same national domestic slab rates and fixed charges as the other companies (SRO 279(I)/2026, Annex-C), and the national FCA applies. Not modelled: the KMC municipal charge (MUCT) and K-Electric's late-payment surcharge. Electricity duty is assumed at 1.5%.",
       "tariff_note_ur": "کے الیکٹرک بھی وہی قومی سلیب شرحیں اور فکسڈ چارجز لگاتا ہے (ایس آر او 279(I)/2026، ضمیمہ سی) اور قومی ایف سی اے لاگو ہوتا ہے۔ شامل نہیں: کے ایم سی میونسپل چارج (MUCT) اور دیر سے ادائیگی کا سرچارج۔ الیکٹرسٹی ڈیوٹی 1.5% فرض کی گئی ہے۔",

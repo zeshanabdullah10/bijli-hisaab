@@ -6,6 +6,7 @@ import {
   clearState, parseBackup, saveState, switchHousehold, addHousehold, renameHousehold, removeHousehold,
 } from '../store.js';
 import { VERSION } from '../version.js';
+import { startScan } from './scan.js';
 import { $, esc, icon, num, openSheet, wireSheet, download } from '../ui.js';
 
 const settingsDlg = () => document.getElementById('settings-sheet');
@@ -137,10 +138,12 @@ function buildSettings() {
           </div></div>
         <div class="row row-switch"><span class="row-label">${esc(t('filer_label'))}</span>
           <span class="switch"><input type="checkbox" id="s-atl" ${p.onATL ? 'checked' : ''} aria-label="${esc(t('filer_label'))}"><span class="switch-track"></span></span></div>
+        <div class="row"><label class="row-label" for="s-duty">${esc(t('duty_label'))}</label>
+          <select id="s-duty" class="row-select">${['auto', 'yes', 'no'].map((v) => `<option value="${v}" ${v === (p.duty || 'auto') ? 'selected' : ''}>${esc(t(`duty_${v}`, { def: t(app.disco.electricity_duty.on_bill ? 'duty_yes' : 'duty_no') }))}</option>`).join('')}</select></div>
         <div class="row"><label class="row-label" for="s-fpa">${esc(t('fpa_label'))}</label>
           <input type="number" inputmode="decimal" id="s-fpa" class="row-input tnum" min="-10" max="20" step="0.01" placeholder="auto" value="${esc(p.fpa)}"></div>
       </div>
-      <p class="group-hint">${esc(t('fpa_hint'))}</p>
+      <p class="group-hint">${esc(t('fpa_hint'))} ${esc(t('duty_hint'))}</p>
       ${app.disco.tariff_note_en ? `<p class="group-hint">${icon('info-circle')} ${esc(state.lang === 'ur' ? app.disco.tariff_note_ur : app.disco.tariff_note_en)}</p>` : ''}
 
       <p class="sheet-label">${esc(t('set_data'))}</p>
@@ -166,6 +169,7 @@ function buildSettings() {
   $('#s-load', dlg).addEventListener('input', (e) => app.change((s) => { s.profile.loadKw = num(e.target.value, { max: 50 }); }));
   dlg.querySelectorAll('input[name=s-phase]').forEach((r) => r.addEventListener('change', (e) => app.change((s) => { s.profile.phase = e.target.value; })));
   $('#s-atl', dlg).addEventListener('change', (e) => app.change((s) => { s.profile.onATL = e.target.checked; }));
+  $('#s-duty', dlg).addEventListener('change', (e) => app.change((s) => { s.profile.duty = e.target.value; }));
   $('#s-fpa', dlg).addEventListener('input', (e) => app.change((s) => { s.profile.fpa = e.target.value; }));
 
   $('#s-export', dlg).addEventListener('click', () => {
@@ -211,6 +215,38 @@ export function maybeWelcome() {
   openSheet(dlg);
 }
 
+// Step two: three ways in, so nobody lands on a wall of numbers.
+function buildStart() {
+  const { t } = app;
+  const dlg = welcomeDlg();
+  const opt = (id, ic, title, body) => `
+    <button class="start-opt" type="button" id="${id}">
+      <span class="start-ic">${icon(ic)}</span>
+      <span class="start-text"><b>${esc(title)}</b><span>${esc(body)}</span></span>
+      ${icon('arrow-right', 'start-go')}
+    </button>`;
+  dlg.innerHTML = `
+    <div class="sheet-body welcome">
+      <h2 id="welcome-title">${esc(t('start_title'))}</h2>
+      <p class="note">${esc(t('start_body'))}</p>
+      <div class="start-opts">
+        ${opt('st-scan', 'photo', t('start_scan'), t('start_scan_body'))}
+        ${opt('st-units', 'receipt', t('start_units'), t('start_units_body'))}
+        ${opt('st-track', 'calendar-stats', t('start_track'), t('start_track_body'))}
+      </div>
+      <button class="btn btn-ghost wide" type="button" data-close>${esc(t('start_skip'))}</button>
+    </div>`;
+  wireSheet(dlg);
+  const done = () => dlg.close();
+  $('#st-scan', dlg).addEventListener('click', () => { done(); app.go('bill'); startScan(); });
+  $('#st-units', dlg).addEventListener('click', () => {
+    done();
+    app.go('bill');
+    setTimeout(() => { const u = document.getElementById('units-input'); u.focus(); u.select(); u.scrollIntoView({ block: 'center' }); }, 120);
+  });
+  $('#st-track', dlg).addEventListener('click', () => { done(); app.go('track'); });
+}
+
 function buildWelcome() {
   const { state, t } = app;
   const dlg = welcomeDlg();
@@ -227,9 +263,10 @@ function buildWelcome() {
       <p class="sheet-label">${esc(t('consumer_type'))}</p>
       ${segHTML('w-type', ['unprotected', 'protected', 'lifeline'].map((v) => ({ value: v, label: t(`type_${v}`) })), state.profile.consumerType)}
       <p class="group-hint">${esc(t('welcome_type_hint'))}</p>
-      <button class="btn btn-primary wide" type="button" data-close>${esc(t('welcome_go'))}</button>
+      <button class="btn btn-primary wide" type="button" id="w-next">${esc(t('welcome_go'))}</button>
     </div>`;
   wireSheet(dlg);
+  $('#w-next', dlg).addEventListener('click', () => buildStart());
   bindSeg(dlg, 'w-lang', (v) => { app.state.lang = v; app.rebuild(); buildWelcome(); });
   bindSeg(dlg, 'w-type', (v) => app.change((s) => { s.profile.consumerType = v; }));
   $('#w-disco', dlg).addEventListener('change', (e) => pickDisco(e.target.value).then(buildWelcome));

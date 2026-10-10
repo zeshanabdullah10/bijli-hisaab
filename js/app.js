@@ -48,6 +48,7 @@ export const app = {
       fpaOverride: p.fpa === '' ? null : Number(p.fpa),
       onATL: p.onATL,
       phase: p.phase,
+      dutyOnBill: p.duty === 'yes' ? true : p.duty === 'no' ? false : undefined,
       solar: withSolar && s.enabled
         ? {
             mode: s.mode,

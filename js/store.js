@@ -15,6 +15,7 @@ export const defaultState = () => ({
     phase: 'single',
     onATL: true,
     fpa: '',
+    duty: 'auto', // electricity duty on the bill: 'auto' (company default) | 'yes' | 'no'
   },
   units: 300,
   budget: 20000,

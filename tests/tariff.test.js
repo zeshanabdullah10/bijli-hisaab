@@ -231,7 +231,7 @@ test('audit fixture — a fully worked bill stays consistent with its recorded t
   // Worked example, generated from the engine and hand-checked against the
   // SRO arithmetic (300 × 33.10 = 9,930 etc.). Replace with a real,
   // anonymised bill photo transcription when you have one — see README.
-  const bill = computeBill({ ...ctx, units: 300, consumerType: 'unprotected' });
+  const bill = computeBill({ ...ctx, units: 300, consumerType: 'unprotected', dutyOnBill: true });
   const lines = Object.fromEntries(bill.items.map((i) => [i.id, i.amount]));
   assert.equal(lines.energy, 9930);
   assert.equal(lines.fixed, 1750);
@@ -268,4 +268,18 @@ test('solar data: every city yield cites a source and every DISCO maps to a city
   for (const s of solar.cost_per_kw.sources) assert.ok(ids.has(s));
   const cityIds = new Set(solar.cities.map((c) => c.id));
   for (const d of discos.discos) assert.ok(cityIds.has(solar.disco_city[d.id]), d.id);
+});
+
+test('electricity duty: off by default for ex-WAPDA since July 2025, on for K-Electric, overridable', () => {
+  const ids = (b) => b.items.map((i) => i.id);
+  const lesco = computeBill({ ...ctx, units: 300 });
+  assert.ok(!ids(lesco).includes('electricity_duty'));
+  assert.ok(ids(computeBill({ ...ctx, units: 300, dutyOnBill: true })).includes('electricity_duty'));
+  const ke = discos.discos.find((d) => d.id === 'kelectric');
+  assert.ok(ids(computeBill({ ...ctx, disco: ke, units: 300 })).includes('electricity_duty'));
+  assert.ok(!ids(computeBill({ ...ctx, disco: ke, units: 300, dutyOnBill: false })).includes('electricity_duty'));
+  for (const d of discos.discos) {
+    assert.equal(typeof d.electricity_duty.on_bill, 'boolean', d.id);
+    assert.ok(d.electricity_duty.on_bill_sources?.length, `${d.id} cites its duty status`);
+  }
 });

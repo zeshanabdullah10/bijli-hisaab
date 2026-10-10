@@ -120,9 +120,11 @@ connection regimes:
   The Solar card shows with/without-solar bills, monthly saving and payback.
 
 **Not** modelled: arrears, meter rent, municipal taxes (MUCT etc.), estimated
-readings, three-phase/TOU meters, commercial & agricultural tariffs, K-Electric's KMC municipal charge (MUCT). Provincial
-electricity duty is verified at 1.5% for Punjab; other regions are assumed
-1.5% pending verified PRs. A computed total within a few percent of the paper
+readings, three-phase/TOU meters, commercial & agricultural tariffs, K-Electric's KMC municipal charge (MUCT). Electricity
+duty: the federal government stopped collecting it through ex-WAPDA bills from
+July 2025 (APP / The News, 30 Jun 2025), so it is off by default there and on
+for K-Electric (still remitted to Sindh in late 2025). Settings → Electricity
+duty switches it per meter if your bill says otherwise. A computed total within a few percent of the paper
 bill is the expected accuracy. The app says so on every screen - please keep
 it that way.
 

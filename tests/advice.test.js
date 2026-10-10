@@ -301,3 +301,4 @@ test('yearReview: totals, extremes, cliff months over the last twelve', async ()
   assert.equal(r.cliffCost, 1200 + 400);
   assert.equal(yearReview(bills.slice(0, 5), { boundaries: [], billAt: () => 0 }), null);
 });
+

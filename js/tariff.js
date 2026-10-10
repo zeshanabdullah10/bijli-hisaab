@@ -90,6 +90,8 @@ export function effectiveConsumerType(tariff, consumerType, units, warnings = []
  * @param {number|null} [p.fpaOverride] per-unit FPA from the paper bill, if known
  * @param {boolean} [p.onATL=true] consumer on the Active Taxpayer List (filer)
  * @param {'single'|'three'} [p.phase='single']  meter phase (minimum charge)
+ * @param {boolean} [p.dutyOnBill]  electricity duty printed on the bill; defaults
+ *   to the DISCO's `electricity_duty.on_bill` (off for ex-WAPDA since July 2025)
  * @param {object|null} [p.solar]  rooftop solar:
  *   { mode: 'net_metering'|'net_billing', importedUnits, exportedUnits,
  *     importedPeak, importedOffPeak, exportedPeak, exportedOffPeak,
@@ -105,7 +107,7 @@ export function effectiveConsumerType(tariff, consumerType, units, warnings = []
 export function computeBill(p) {
   const {
     tariff, disco, units: unitsIn = 0, consumerType = 'unprotected', loadKw = 5,
-    fpaOverride = null, onATL = true, phase = 'single', solar = null,
+    fpaOverride = null, onATL = true, phase = 'single', solar = null, dutyOnBill,
   } = p;
 
   const warnings = [];
@@ -214,16 +216,17 @@ export function computeBill(p) {
 
   // --- 5. Electricity duty (provincial) --------------------------------------
   const ed = disco.electricity_duty;
-  const edBaseIds = ed.base || ['energy'];
-  const edBase = items.filter((i) => edBaseIds.includes(i.id)).reduce((a, i) => a + i.amount, 0);
-  const edAmount = round2(edBase * ed.rate_pct / 100);
-  items.push({
-    id: 'electricity_duty', kind: 'tax',
-    name_en: `Electricity duty (${disco.region_en})`, name_ur: 'الیکٹرسٹی ڈیوٹی',
-    amount: edAmount,
-    formula: `${ed.rate_pct}% × Rs ${round2(edBase).toLocaleString('en-PK')} (on ${edBaseIds.join(' + ')})`,
-    source: src('mepco_tax'),
-  });
+  if (dutyOnBill ?? ed.on_bill ?? true) {
+    const edBaseIds = ed.base || ['energy'];
+    const edBase = items.filter((i) => edBaseIds.includes(i.id)).reduce((a, i) => a + i.amount, 0);
+    items.push({
+      id: 'electricity_duty', kind: 'tax',
+      name_en: `Electricity duty (${disco.region_en})`, name_ur: 'الیکٹرسٹی ڈیوٹی',
+      amount: round2(edBase * ed.rate_pct / 100),
+      formula: `${ed.rate_pct}% × Rs ${round2(edBase).toLocaleString('en-PK')} (on ${edBaseIds.join(' + ')})`,
+      source: ed.on_bill_sources?.[0]?.url || src('mepco_tax'),
+    });
+  }
 
   // --- 6. TV licence fee ------------------------------------------------------
   const tv = tariff.fees.tv_license;
