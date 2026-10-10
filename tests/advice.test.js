@@ -6,7 +6,10 @@ import { dirname, join } from 'node:path';
 
 import { computeBill } from '../js/tariff.js';
 import { buildInsights, compareClasses, diagnoseBill, variableRate, billAt } from '../js/insights.js';
-import { analyzeCycle, allowanceFor, underLimitStreak, historyStats, addDays, daysBetween } from '../js/tracker.js';
+import {
+  analyzeCycle, allowanceFor, underLimitStreak, historyStats, addDays, daysBetween,
+  addMonths, sameMonthLastYear, forecastMonths, buildIcs,
+} from '../js/tracker.js';
 import { applianceKwh, resolve, priceAppliances } from '../js/appliances.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -199,4 +202,52 @@ test('appliances: pricing is counterfactual and reports the cliff', () => {
   assert.ok(priced.rows[0].savesIfOff > priced.rows[1].savesIfOff);
   assert.ok(priced.rows[0].rsPerHour > 30 && priced.rows[0].rsPerHour < 200);
   assert.ok(priced.rows[0].hourLess > 0);
+});
+
+// ---------------------------------------------------------------- outlook & reminders
+
+const billsFrom = (start, units) => units.map((u, i) => ({ month: addMonths(start, i), units: u, amount: u * 40 }));
+
+test('addMonths crosses year boundaries both ways', () => {
+  assert.equal(addMonths('2026-11', 2), '2027-01');
+  assert.equal(addMonths('2026-01', -1), '2025-12');
+  assert.equal(addMonths('2026-03', -12), '2025-03');
+});
+
+test('sameMonthLastYear finds the bill twelve months back', () => {
+  const bills = billsFrom('2025-06', [300, 320, 340]);
+  assert.equal(sameMonthLastYear([...bills, { month: '2026-07', units: 1, amount: 1 }], '2026-07').units, 320);
+  assert.equal(sameMonthLastYear(bills, '2026-01'), null);
+});
+
+test('forecast: needs three bills, then falls back to the recent average', () => {
+  assert.deepEqual(forecastMonths(billsFrom('2026-01', [100, 120])), []);
+  const f = forecastMonths(billsFrom('2026-01', [100, 120, 140]));
+  assert.deepEqual(f.map((m) => m.month), ['2026-04', '2026-05', '2026-06']);
+  assert.ok(f.every((m) => m.basis === 'recent' && m.units === 120));
+});
+
+test('forecast: seasonal, scaled by this year vs last year', () => {
+  // A year of bills, then three months running 10% above a year earlier.
+  const year = [150, 120, 110, 125, 160, 200, 280, 350, 390, 330, 240, 190];
+  const bills = billsFrom('2025-01', [...year, ...year.slice(0, 3).map((u) => u * 1.1)]);
+  const f = forecastMonths(bills, 3);
+  assert.deepEqual(f.map((m) => m.month), ['2026-04', '2026-05', '2026-06']);
+  assert.ok(f.every((m) => m.basis === 'last_year'));
+  assert.deepEqual(f.map((m) => m.units), [138, 176, 220]);
+});
+
+test('forecast: the seasonal scale is clamped', () => {
+  const bills = billsFrom('2025-01', [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 500, 500, 500]);
+  assert.equal(forecastMonths(bills, 1)[0].units, 160);
+});
+
+test('ics: a reminder every N days up to the cycle end, plus the end itself', () => {
+  const ics = buildIcs({ from: '2026-10-10', endDate: '2026-10-22', everyDays: 3, title: 'Read, meter', body: 'x', endTitle: 'End' });
+  const starts = [...ics.matchAll(/DTSTART;VALUE=DATE:(\d+)/g)].map((m) => m[1]);
+  assert.deepEqual(starts, ['20261013', '20261016', '20261019', '20261022']);
+  assert.match(ics, /SUMMARY:Read\\, meter/);
+  assert.match(ics, /^BEGIN:VCALENDAR\r\n/);
+  assert.match(ics, /END:VCALENDAR\r\n$/);
+  assert.equal(new Set([...ics.matchAll(/UID:(\S+)/g)].map((m) => m[1])).size, 4);
 });

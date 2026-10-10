@@ -1277,3 +1277,23 @@ dialog.sheet[open] { animation: sheet-in 0.4s var(--ease-out); }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---- cycle chart, risk, outlook ------------------------------------------------------------ */
+
+.cycle-chart svg { cursor: default; }
+#cy-risk.insight { margin: 0; padding: 14px; border-radius: var(--radius-card); background: var(--surface); box-shadow: var(--shadow-card), inset 0 0 0 1.5px var(--danger-soft); }
+.line-key { display: inline-block; width: 18px; height: 0; border-top: 2.5px solid var(--chart-line); border-radius: 2px; }
+.line-key.dashed { border-top-style: dotted; opacity: 0.8; }
+.fold-btn { margin-top: 6px; width: 100%; justify-content: center; }
+.ic.flip { transform: rotate(180deg); }
+.yoy { font-size: 0.8rem; font-weight: 600; color: var(--text-2); margin-top: 4px; }
+.yoy.is-up { color: var(--danger); }
+.yoy.is-down { color: var(--good); }
+.outlook { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+.outlook-col { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; padding: 12px 6px; border-radius: var(--radius-tile); background: var(--surface-2); }
+.outlook-col.is-over { background: var(--danger-soft); }
+.outlook-col b { font-family: var(--display); font-size: 1.5rem; letter-spacing: -0.03em; line-height: 1.1; }
+.outlook-month { font-size: 0.74rem; font-weight: 700; color: var(--text-2); }
+.outlook-units { font-size: 0.7rem; color: var(--text-3); }
+.outlook-bill { font-size: 0.82rem; font-weight: 600; margin-top: 4px; }
+.outlook-col .tag { margin: 4px 0 0; }

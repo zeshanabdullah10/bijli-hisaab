@@ -112,3 +112,83 @@ export function historyStats(bills) {
     peak,
   };
 }
+
+// ---------------------------------------------------------------- months
+
+const monthIdx = (m) => +m.slice(0, 4) * 12 + (+m.slice(5, 7) - 1);
+const idxMonth = (i) => `${Math.floor(i / 12)}-${String((i % 12) + 1).padStart(2, '0')}`;
+export const addMonths = (m, n) => idxMonth(monthIdx(m) + n);
+
+/** The bill for the same calendar month one year earlier, or null. */
+export function sameMonthLastYear(bills, month) {
+  const target = addMonths(month, -12);
+  return bills.find((b) => b.month === target) || null;
+}
+
+/**
+ * Units outlook for the `n` months after the latest bill. Electricity use in
+ * Pakistan is dominated by the season, so a month is forecast from the same
+ * month last year, scaled by how the last three months compare with the same
+ * three a year earlier (you bought an AC, you started switching it off...).
+ * Without a year-ago bill it falls back to the recent average.
+ * @returns {Array<{month: string, units: number, basis: 'last_year'|'recent'}>}
+ */
+export function forecastMonths(bills, n = 3) {
+  if (bills.length < 3) return [];
+  const byMonth = new Map(bills.map((b) => [b.month, b.units]));
+  const latest = [...byMonth.keys()].sort().at(-1);
+  const recent = [0, 1, 2].map((k) => addMonths(latest, -k));
+
+  let scale = 1;
+  const now = recent.map((m) => byMonth.get(m));
+  const then = recent.map((m) => byMonth.get(addMonths(m, -12)));
+  if (now.every((u) => u !== undefined) && then.every((u) => u !== undefined)) {
+    const a = now.reduce((s, u) => s + u, 0);
+    const b = then.reduce((s, u) => s + u, 0);
+    if (b > 0) scale = Math.max(0.6, Math.min(1.6, a / b));
+  }
+  const known = recent.map((m) => byMonth.get(m)).filter((u) => u !== undefined);
+  const recentAvg = known.reduce((s, u) => s + u, 0) / known.length;
+
+  return Array.from({ length: n }, (_, k) => {
+    const month = addMonths(latest, k + 1);
+    const ago = byMonth.get(addMonths(month, -12));
+    return ago !== undefined
+      ? { month, units: Math.round(ago * scale), basis: 'last_year' }
+      : { month, units: Math.round(recentAvg), basis: 'recent' };
+  });
+}
+
+// ---------------------------------------------------------------- reminders
+
+const icsEscape = (s) => String(s).replace(/[\;,]/g, (c) => `\\${c}`).replace(/\n/g, '\\n');
+const icsDate = (iso) => iso.replaceAll('-', '');
+
+/**
+ * An iCalendar file with an all-day "read the meter" event every `everyDays`
+ * days from `from` up to the cycle end, plus a "cycle ends" event. Calendar
+ * apps import it once and remind offline, which a PWA cannot do reliably.
+ */
+export function buildIcs({ from, endDate, everyDays = 3, title, body, endTitle, stamp = '20260101T000000Z' }) {
+  const events = [];
+  for (let d = addDays(from, everyDays); d < endDate; d = addDays(d, everyDays)) {
+    events.push({ date: d, summary: title });
+  }
+  events.push({ date: endDate, summary: endTitle });
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//BijliHisaab//Meter reminders//EN', 'CALSCALE:GREGORIAN'];
+  for (const e of events) {
+    lines.push(
+      'BEGIN:VEVENT',
+      `UID:bh-${icsDate(e.date)}-${events.indexOf(e)}@bijlihisaab`,
+      `DTSTAMP:${stamp}`,
+      `DTSTART;VALUE=DATE:${icsDate(e.date)}`,
+      `DTEND;VALUE=DATE:${icsDate(addDays(e.date, 1))}`,
+      `SUMMARY:${icsEscape(e.summary)}`,
+      `DESCRIPTION:${icsEscape(body)}`,
+      'BEGIN:VALARM', 'ACTION:DISPLAY', 'TRIGGER:PT18H', `DESCRIPTION:${icsEscape(e.summary)}`, 'END:VALARM',
+      'END:VEVENT',
+    );
+  }
+  lines.push('END:VCALENDAR');
+  return `${lines.join('\r\n')}\r\n`;
+}

@@ -121,3 +121,62 @@ function wireDrag(host, onDrag, MAX_U) {
   host.addEventListener('pointerup', up, opts);
   host.addEventListener('pointercancel', up, opts);
 }
+
+/**
+ * Cycle burn-up chart: cumulative units through the billing cycle. Solid line
+ * for what the meter has recorded, dashed line for where the current pace
+ * lands, and the slab limits as horizontal hairlines, so "will I cross 200?"
+ * is answered by looking at where two lines meet.
+ */
+export function renderCycleChart({ host, points, cycleDays, projected, limits, labels }) {
+  const W = 360;
+  const H = 200;
+  const M = { top: 14, right: 32, bottom: 24, left: 4 };
+  const iw = W - M.left - M.right;
+  const ih = H - M.top - M.bottom;
+  const peak = Math.max(projected, points.at(-1).units);
+  const maxY = limits.find((l) => l >= peak * 1.05) ?? Math.ceil((peak * 1.1) / 50) * 50;
+  const px = (d) => M.left + (d / cycleDays) * iw;
+  const py = (u) => M.top + ih - (Math.min(u, maxY) / maxY) * ih;
+  const last = points.at(-1);
+
+  const xy = points.map((p) => `${px(p.day).toFixed(1)},${py(p.units).toFixed(1)}`);
+  const line = `M${xy.join(' L')}`;
+  const area = `${line} L${px(last.day).toFixed(1)},${M.top + ih} L${px(0)},${M.top + ih} Z`;
+
+  const crossed = (l) => projected > l;
+  const rules = limits.filter((l) => l <= maxY).map((l) => `
+    <line x1="${M.left}" y1="${py(l)}" x2="${W - M.right}" y2="${py(l)}" stroke="${crossed(l) ? 'var(--danger)' : 'var(--text-3)'}" stroke-width="1" stroke-dasharray="3 5" opacity="${crossed(l) ? 0.7 : 0.45}"/>
+    <text x="${W - M.right + 6}" y="${py(l) + 3.5}" font-size="10.5" font-weight="700" fill="${crossed(l) ? 'var(--danger)' : 'var(--text-3)'}">${l}</text>`).join('');
+
+  const dots = points.slice(1).map((p) =>
+    `<circle cx="${px(p.day).toFixed(1)}" cy="${py(p.units).toFixed(1)}" r="2.75" fill="var(--surface)" stroke="var(--chart-line)" stroke-width="1.75"/>`).join('');
+
+  const projPill = `${fmt(projected)}`;
+  const pillW = projPill.length * 6.4 + 14;
+  const yEnd = py(projected);
+
+  host.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${labels.aria}">
+      <defs>
+        <linearGradient id="bh-cyc" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--chart-fill-a)"/>
+          <stop offset="100%" stop-color="var(--chart-fill-b)"/>
+        </linearGradient>
+      </defs>
+      ${rules}
+      <path d="${area}" fill="url(#bh-cyc)"/>
+      <line x1="${px(last.day)}" y1="${py(last.units)}" x2="${px(cycleDays)}" y2="${yEnd}" stroke="var(--chart-line)" stroke-width="2" stroke-dasharray="2 6" stroke-linecap="round" opacity="0.75"/>
+      <path d="${line}" fill="none" stroke="var(--chart-line)" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
+      ${dots}
+      <circle cx="${px(cycleDays)}" cy="${yEnd}" r="4.5" fill="var(--chart-line)" opacity="0.5"/>
+      <g transform="translate(${px(cycleDays) - 8}, ${Math.max(M.top + 10, yEnd - 16)})">
+        <rect x="${-pillW}" y="-11" width="${pillW}" height="19" rx="9.5" fill="var(--text)" opacity="0.88"/>
+        <text x="${-pillW / 2}" y="0" text-anchor="middle" dominant-baseline="middle" font-size="10.5" font-weight="700" fill="var(--surface)">${projPill}</text>
+      </g>
+      <line x1="${M.left}" y1="${M.top + ih}" x2="${W - M.right}" y2="${M.top + ih}" stroke="var(--hairline)" stroke-width="1.5"/>
+      <text x="${M.left}" y="${H - 6}" font-size="10.5" fill="var(--text-3)">${labels.start}</text>
+      <text x="${px(last.day)}" y="${H - 6}" font-size="10.5" font-weight="700" text-anchor="middle" fill="var(--text-2)">${labels.latest}</text>
+      <text x="${W - M.right}" y="${H - 6}" font-size="10.5" text-anchor="end" fill="var(--text-3)">${labels.end}</text>
+    </svg>`;
+}

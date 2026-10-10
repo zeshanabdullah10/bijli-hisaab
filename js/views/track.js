@@ -4,13 +4,19 @@
 import { app } from '../app.js';
 import { computeBill } from '../tariff.js';
 import { billAt } from '../insights.js';
-import { analyzeCycle, allowanceFor, underLimitStreak, historyStats, isoDate } from '../tracker.js';
+import {
+  analyzeCycle, allowanceFor, underLimitStreak, historyStats, isoDate, daysBetween,
+  forecastMonths, sameMonthLastYear, buildIcs,
+} from '../tracker.js';
+import { renderCycleChart } from '../chart.js';
 import { fmt } from '../i18n.js';
 import { $, $$, esc, icon, num, niceDate, download, openSheet, wireSheet } from '../ui.js';
 
 let root = null;
 let sub = 'cycle';
 let selectedBar = null;
+let showAllReadings = false;
+const READINGS_FOLDED = 4;
 
 const today = () => isoDate();
 const prevMonth = () => {
@@ -82,6 +88,12 @@ function buildCycle() {
 
     <div id="cy-live" class="stack" hidden>
       <section class="card summary" id="cy-summary"></section>
+      <div class="insight lvl-warn" id="cy-risk" hidden></div>
+      <section class="card" id="cy-chart-card" hidden>
+        <header class="card-head">${icon('trending-up', 'head-ic')}<h2>${esc(t('cy_chart_title'))}</h2></header>
+        <div class="chart-wrap cycle-chart" id="cy-chart"></div>
+        <ul class="legend-row"><li><i class="line-key"></i>${esc(t('cy_chart_meter'))}</li><li><i class="line-key dashed"></i>${esc(t('cy_chart_pace'))}</li></ul>
+      </section>
       <section class="card" id="cy-plan"></section>
       <section class="card">
         <header class="card-head">${icon('plus', 'head-ic')}<h2>${esc(t('cy_add_title'))}</h2></header>
@@ -96,6 +108,7 @@ function buildCycle() {
       <div class="action-row">
         <button class="btn btn-secondary" id="cy-use" type="button">${icon('arrow-right')}<span>${esc(t('cy_use_in_bill'))}</span></button>
         <button class="btn btn-secondary" id="cy-close" type="button">${icon('flag')}<span>${esc(t('cy_close'))}</span></button>
+        <button class="btn btn-secondary" id="cy-remind" type="button">${icon('bell')}<span>${esc(t('cy_remind'))}</span></button>
         <button class="btn btn-ghost" id="cy-restart" type="button">${icon('rotate')}<span>${esc(t('cy_restart'))}</span></button>
       </div>
     </div>`;
@@ -110,12 +123,20 @@ function buildCycle() {
     app.go('bill');
   });
   $('#cy-close', root).addEventListener('click', openCloseSheet);
+  $('#cy-remind', root).addEventListener('click', openRemindSheet);
+  $('#cy-risk', root).addEventListener('click', (e) => {
+    const b = e.target.closest('[data-units]');
+    if (!b) return;
+    app.change((s) => { s.units = Number(b.dataset.units); });
+    app.go('bill');
+  });
   $('#cy-restart', root).addEventListener('click', () => {
     if (confirm(app.t('cy_restart_confirm'))) {
       app.change((s) => { s.cycle = { startDate: '', startReading: '', cycleDays: 30, readings: [] }; });
     }
   });
   $('#cy-readings', root).addEventListener('click', (e) => {
+    if (e.target.closest('#cy-fold')) { showAllReadings = !showAllReadings; updateCycle(); return; }
     const b = e.target.closest('[data-del-reading]');
     if (!b) return;
     app.change((s) => { s.cycle.readings = s.cycle.readings.filter((r) => r.date !== b.dataset.delReading); });
@@ -206,21 +227,130 @@ function updateCycle() {
   }
   $('#cy-summary', root).innerHTML = head;
 
+  renderRisk(c);
+  renderChart(c, bounds);
+
   // ---- pace plan
   renderPlan(c, bounds, ur);
 
-  // ---- readings
+  // ---- readings: newest first, opening reading last; long lists fold
+  const later = [...state.cycle.readings].sort((a, b) => b.date.localeCompare(a.date));
+  const folded = !showAllReadings && later.length > READINGS_FOLDED;
   const rows = [
+    ...(folded ? later.slice(0, READINGS_FOLDED - 1) : later),
     { date: state.cycle.startDate, reading: Number(state.cycle.startReading), start: true },
-    ...[...state.cycle.readings].sort((a, b) => b.date.localeCompare(a.date)),
   ];
+  const fold = later.length > READINGS_FOLDED
+    ? `<button class="btn btn-ghost fold-btn" id="cy-fold" type="button">${icon('chevron-down', showAllReadings ? 'flip' : '')}<span>${esc(showAllReadings ? t('cy_show_less') : t('cy_show_all', { n: later.length + 1 }))}</span></button>`
+    : '';
   const ignored = new Set((c.ignored || []).map((r) => r.date));
-  $('#cy-readings', root).innerHTML = `<ul class="list">${rows.map((r) => `
+  $('#cy-readings', root).innerHTML = `<ul class="list${folded ? ' is-folded' : ''}">${rows.map((r) => `
     <li class="${ignored.has(r.date) ? 'is-ignored' : ''}">
       <span>${esc(niceDate(r.date, state.lang))}${r.start ? ` <em class="tag">${esc(t('cy_opening'))}</em>` : ''}${ignored.has(r.date) ? ` <em class="tag warn">${esc(t('cy_ignored'))}</em>` : ''}</span>
       <b class="tnum">${fmt(r.reading)}</b>
       ${r.start ? '<span class="list-gap"></span>' : `<button class="icon-btn small" type="button" data-del-reading="${esc(r.date)}" aria-label="${esc(t('delete'))}">${icon('trash')}</button>`}
-    </li>`).join('')}</ul>`;
+    </li>`).join('')}</ul>${fold}`;
+}
+
+/** Protected / lifeline consumers: warn before the month tips over the cap. */
+function renderRisk(c) {
+  const { state, t } = app;
+  const host = $('#cy-risk', root);
+  const type = state.profile.consumerType;
+  host.hidden = true;
+  if (c.status !== 'ok' || type === 'unprotected') return;
+  const cap = app.tariff.consumer_classes.domestic[type].slabs.at(-1).up_to;
+  if (c.projected <= cap) return;
+
+  const ctx = app.plainCtx();
+  const name = t(`type_${type}`);
+  let body;
+  if (c.used > cap) {
+    body = t('risk_body_over', { used: fmt(c.used), cap, type: name });
+  } else {
+    // A typical future month: the logged average if there is one, else the
+    // cap itself, priced with and without the protection that would be lost.
+    const hist = historyStats(state.bills);
+    const typical = Math.min(cap, hist ? hist.avgUnits : cap);
+    const perMonth = billAt(ctx, typical, { consumerType: 'unprotected' }) - billAt(ctx, typical);
+    body = t('risk_body', {
+      projected: fmt(c.projected), cap, type: name,
+      now: fmt(billAt(ctx, c.projected) - billAt(ctx, cap)),
+      later: fmt(Math.max(0, perMonth) * 6),
+      perDay: allowanceFor(cap, c).perDay,
+    });
+  }
+  host.innerHTML = `
+    <span class="insight-ic">${icon('alert-triangle')}</span>
+    <div class="insight-body"><b>${esc(t('risk_title', { type: name }))}</b>${esc(body)}
+      ${c.used > cap ? '' : `<button class="btn btn-small" type="button" data-units="${cap}">${icon('arrow-right')}${esc(t('risk_safe', { cap }))}</button>`}
+    </div>`;
+  host.hidden = false;
+}
+
+function renderChart(c, bounds) {
+  const { state, t } = app;
+  const card = $('#cy-chart-card', root);
+  card.hidden = c.status !== 'ok';
+  if (card.hidden) return;
+  const { startDate } = state.cycle;
+  const start = Number(state.cycle.startReading);
+  const points = [{ day: 0, units: 0 }, ...c.valid.map((r) => ({ day: daysBetween(startDate, r.date), units: r.reading - start }))];
+  const at = c.daysElapsed / c.cycleDays;
+  const d = (iso) => niceDate(iso, state.lang, { year: false });
+  renderCycleChart({
+    host: $('#cy-chart', root),
+    points,
+    cycleDays: c.cycleDays,
+    projected: c.projected,
+    limits: bounds,
+    labels: {
+      aria: t('cy_chart_aria', { used: c.used, projected: c.projected }),
+      start: d(startDate),
+      latest: at > 0.2 && at < 0.8 ? d(c.latest.date) : '',
+      end: d(c.endDate),
+    },
+  });
+}
+
+function openRemindSheet() {
+  const { state, t } = app;
+  const c = cycleInfo();
+  const dlg = document.getElementById('close-sheet');
+  const opts = [2, 3, 5, 7];
+  let every = 3;
+  dlg.innerHTML = `
+    <form method="dialog" class="sheet-body" id="remind-form">
+      <header class="sheet-head"><h2 id="close-title">${esc(t('cy_remind_title'))}</h2>
+        <button class="icon-btn small" type="button" data-close aria-label="${esc(t('close'))}">${icon('x')}</button></header>
+      <p class="note tight">${esc(t('cy_remind_body'))}</p>
+      <p class="sheet-label">${esc(t('cy_remind_every'))}</p>
+      <div class="seg" id="remind-seg" style="--seg-n:${opts.length};--active:${opts.indexOf(every)}">
+        <span class="seg-thumb" aria-hidden="true"></span>
+        ${opts.map((n) => `<label class="seg-item"><input type="radio" name="remind-every" value="${n}" ${n === every ? 'checked' : ''}><span>${esc(t('cy_remind_days', { n }))}</span></label>`).join('')}
+      </div>
+      <button class="btn btn-primary wide" type="submit">${icon('bell')}<span>${esc(t('cy_remind_btn'))}</span></button>
+    </form>`;
+  wireSheet(dlg);
+  dlg.querySelectorAll('input[name=remind-every]').forEach((r) => r.addEventListener('change', () => {
+    every = Number(r.value);
+    dlg.querySelector('#remind-seg').style.setProperty('--active', opts.indexOf(every));
+  }));
+  dlg.querySelector('#remind-form').addEventListener('submit', () => {
+    const now = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+    const ics = buildIcs({
+      from: today() > state.cycle.startDate ? today() : state.cycle.startDate,
+      endDate: c.endDate || state.cycle.startDate,
+      everyDays: every,
+      title: t('ics_read'),
+      body: t('ics_body'),
+      endTitle: t('ics_end'),
+      stamp: now,
+    });
+    download('bijlihisaab-meter-reminders.ics', ics, 'text/calendar');
+    app.toast(t('cy_remind_done'));
+  });
+  openSheet(dlg);
 }
 
 function renderPlan(c, bounds, ur) {
@@ -369,6 +499,16 @@ function updateHistory() {
   const pStreak = underLimitStreak(bills, 200);
   const lStreak = underLimitStreak(bills, 100);
 
+  const ago = sameMonthLastYear(bills, sel.month);
+  let yoy = '';
+  if (ago && ago.units > 0) {
+    const pct = Math.round(((sel.units - ago.units) / ago.units) * 100);
+    const month = niceDate(ago.month, state.lang);
+    const key = Math.abs(pct) < 5 ? 'hs_yoy_same' : pct > 0 ? 'hs_yoy_up' : 'hs_yoy_down';
+    yoy = `<p class="yoy ${Math.abs(pct) < 5 ? '' : pct > 0 ? 'is-up' : 'is-down'}">${esc(t(key, { pct: Math.abs(pct), month }))}</p>`;
+  }
+  const outlook = renderOutlook(bills);
+
   const dots = (n, goal) => Array.from({ length: goal }, (_, i) => `<i class="${i < Math.min(n, goal) ? 'on' : ''}"></i>`).join('');
   const streakRow = (name, n, goal, cap) => `
     <div class="streak">
@@ -388,8 +528,11 @@ function updateHistory() {
           </button>`).join('')}
       </div>
       <p class="bar-detail tnum"><b>${esc(niceDate(sel.month, state.lang))}</b> · ${fmt(sel.units)} ${esc(t('units_word'))} · Rs ${fmt(sel.amount)} · Rs ${(sel.amount / Math.max(sel.units, 1)).toFixed(1)}/${esc(t('unit_word'))}</p>
+      ${yoy}
       <ul class="legend-row"><li><i class="dot seg-3"></i>≤100</li><li><i class="dot seg-1"></i>101–200</li><li><i class="dot seg-2"></i>&gt;200</li></ul>
     </section>
+
+    ${outlook}
 
     <div class="tiles four">
       <div class="tile"><span>${esc(t('hs_avg_units'))}</span><b class="tnum">${fmt(stats.avgUnits)}</b></div>
@@ -411,5 +554,30 @@ function updateHistory() {
         <li><span>${esc(niceDate(b.month, state.lang))}<em class="tag">${fmt(b.units)} ${esc(t('units_word'))}</em></span>
         <b class="tnum">Rs ${fmt(b.amount)}</b>
         <button class="icon-btn small" type="button" data-del-bill="${esc(b.id)}" aria-label="${esc(t('delete'))}">${icon('trash')}</button></li>`).join('')}</ul>
+    </section>`;
+}
+
+/** Next three months, priced: seasonal when a year of bills is logged. */
+function renderOutlook(bills) {
+  const { state, t } = app;
+  const months = forecastMonths(bills, 3);
+  if (!months.length) return '';
+  const ctx = app.plainCtx();
+  const type = state.profile.consumerType;
+  const cap = type === 'unprotected' ? null : app.tariff.consumer_classes.domestic[type].slabs.at(-1).up_to;
+  const seasonal = months.some((m) => m.basis === 'last_year');
+  return `
+    <section class="card">
+      <header class="card-head">${icon('calendar-stats', 'head-ic')}<h2>${esc(t('hs_outlook_title'))}</h2></header>
+      <div class="outlook">${months.map((m) => `
+        <div class="outlook-col${cap !== null && m.units > cap ? ' is-over' : ''}">
+          <span class="outlook-month">${esc(niceDate(m.month, state.lang))}</span>
+          <b class="tnum">${fmt(m.units)}</b>
+          <span class="outlook-units">${esc(t('units_word'))}</span>
+          <span class="outlook-bill tnum">Rs ${fmt(billAt(ctx, m.units))}</span>
+          ${cap !== null && m.units > cap ? `<em class="tag warn">${esc(t('hs_outlook_over', { cap }))}</em>` : ''}
+        </div>`).join('')}
+      </div>
+      <p class="note tight">${esc(t(seasonal ? 'hs_outlook_ly' : 'hs_outlook_recent'))}</p>
     </section>`;
 }
