@@ -6,10 +6,11 @@ import { computeBill } from '../tariff.js';
 import { billAt } from '../insights.js';
 import {
   analyzeCycle, allowanceFor, underLimitStreak, historyStats, isoDate, daysBetween,
-  forecastMonths, sameMonthLastYear, buildIcs, readingError,
+  forecastMonths, sameMonthLastYear, buildIcs, readingError, yearReview,
 } from '../tracker.js';
 import { renderCycleChart } from '../chart.js';
 import { resolve, cutOptions } from '../appliances.js';
+import { renderCard, shareCard } from '../sharecard.js';
 import { fmt } from '../i18n.js';
 import { $, $$, esc, icon, num, niceDate, download, openSheet, wireSheet } from '../ui.js';
 
@@ -471,6 +472,7 @@ function buildHistory() {
     const bar = e.target.closest('[data-bar]');
     if (bar) { selectedBar = bar.dataset.bar; updateHistory(); }
     if (e.target.closest('#hs-export')) exportCsv();
+    if (e.target.closest('#yr-share')) shareYear();
   });
 }
 
@@ -557,6 +559,8 @@ function updateHistory() {
 
     ${outlook}
 
+    ${yearHTML(bills)}
+
     <div class="tiles four">
       <div class="tile"><span>${esc(t('hs_avg_units'))}</span><b class="tnum">${fmt(stats.avgUnits)}</b></div>
       <div class="tile"><span>${esc(t('hs_avg_bill'))}</span><b class="tnum">Rs ${fmt(stats.avgAmount)}</b></div>
@@ -603,4 +607,56 @@ function renderOutlook(bills) {
       </div>
       <p class="note tight">${esc(t(seasonal ? 'hs_outlook_ly' : 'hs_outlook_recent'))}</p>
     </section>`;
+}
+
+// ================================================================ year in review
+
+function review(bills) {
+  const ctx = app.plainCtx();
+  return yearReview(bills, { boundaries: boundaries(), billAt: (u) => billAt(ctx, u) });
+}
+
+function yearHTML(bills) {
+  const { state, t } = app;
+  const r = review(bills);
+  if (!r) return '';
+  const d = (m) => niceDate(m, state.lang);
+  return `
+    <section class="card year">
+      <header class="card-head">${icon('sparkles', 'head-ic')}<h2>${esc(t('yr_title'))}</h2>
+        <button class="btn btn-small head-side-btn" id="yr-share" type="button">${icon('share')}${esc(t('yr_share'))}</button></header>
+      <p class="note tight">${esc(t('yr_span', { from: d(r.from), to: d(r.to), n: r.months }))}</p>
+      <p class="yr-big tnum">Rs ${fmt(r.total)}</p>
+      <p class="note tight">${esc(t('yr_avg', { avg: fmt(r.avg), units: fmt(r.units) }))}</p>
+      <div class="tiles">
+        <div class="tile warn"><span>${esc(t('yr_priciest'))}</span><b class="tnum">${esc(d(r.priciest.month))}</b><small class="tnum">Rs ${fmt(r.priciest.amount)}</small></div>
+        <div class="tile good"><span>${esc(t('yr_cheapest'))}</span><b class="tnum">${esc(d(r.cheapest.month))}</b><small class="tnum">Rs ${fmt(r.cheapest.amount)}</small></div>
+        <div class="tile"><span>${esc(t('yr_under'))}</span><b class="tnum">${r.underCap}/${r.months}</b></div>
+        <div class="tile${r.cliffMonths ? ' warn' : ''}"><span>${esc(t('yr_cliff'))}</span><b class="tnum">${r.cliffMonths ? `Rs ${fmt(r.cliffCost)}` : '0'}</b>${r.cliffMonths ? `<small>${esc(t('yr_cliff_n', { n: r.cliffMonths }))}</small>` : ''}</div>
+      </div>
+    </section>`;
+}
+
+async function shareYear() {
+  const { state, t } = app;
+  const r = review([...state.bills]);
+  if (!r) return;
+  const d = (m) => niceDate(m, state.lang);
+  const canvas = await renderCard({
+    rtl: state.lang === 'ur',
+    kicker: t('yr_title').toUpperCase(),
+    big: `Rs ${fmt(r.total)}`,
+    sub: t('yr_span', { from: d(r.from), to: d(r.to), n: r.months }),
+    rows: [
+      { label: t('yr_avg_short'), value: `Rs ${fmt(r.avg)}` },
+      { label: t('hs_total_units'), value: fmt(r.units) },
+      { label: `${t('yr_priciest')} · ${d(r.priciest.month)}`, value: `Rs ${fmt(r.priciest.amount)}`, tone: 'bad' },
+      { label: `${t('yr_cheapest')} · ${d(r.cheapest.month)}`, value: `Rs ${fmt(r.cheapest.amount)}`, tone: 'good' },
+      { label: t('yr_under'), value: `${r.underCap}/${r.months}` },
+      ...(r.cliffMonths ? [{ label: t('yr_cliff_n', { n: r.cliffMonths }), value: `Rs ${fmt(r.cliffCost)}`, tone: 'bad' }] : []),
+    ],
+    footer: t('card_footer'),
+  });
+  const how = await shareCard(canvas, `bijlihisaab-year-${r.to}.png`, t('yr_share_text', { total: fmt(r.total) }));
+  if (how === 'downloaded') app.toast(t('card_saved'));
 }

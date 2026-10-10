@@ -10,6 +10,7 @@ import { el, $$, esc, icon, fillSlider, num, copyText } from '../ui.js';
 import { openSettings } from './settings.js';
 import { startScan } from './scan.js';
 import { openSolarSizer } from './solarsize.js';
+import { renderCard, shareCard } from '../sharecard.js';
 
 // Bill-line id → glossary entry id (Learn tab).
 const GLOSSARY = {
@@ -398,6 +399,35 @@ async function share() {
   if (await copyText(`${text}\n${url}`)) app.toast(app.t('copied'));
 }
 
+/** The line-by-line bill as an image: for a dispute, the family group, or the record. */
+async function shareBillImage() {
+  const { state, t } = app;
+  const ur = state.lang === 'ur';
+  const bill = computeBill(app.ctx());
+  const cliff = slabCliffInfo(app.plainCtx());
+  const segOf = (id) => GROUPS.find((g) => g.ids.includes(id))?.seg ?? 0;
+  const canvas = await renderCard({
+    rtl: ur,
+    kicker: `${t('total_label')} · ${app.disco.name_en} · ${fmt(state.units)} ${t('units_word')}`.toUpperCase(),
+    big: `Rs ${fmt(bill.total)}`,
+    sub: `${typeName(state.profile.consumerType)} · ${cliff.slabLabel} · ${t('effective_rate')}: Rs ${fmt2(bill.effectiveRatePerUnit)} ${t('per_unit')}`,
+    bar: GROUPS.map((g) => ({ seg: g.seg, amount: bill.items.filter((i) => g.ids.includes(i.id) && i.amount > 0).reduce((a, i) => a + i.amount, 0) }))
+      .filter((g) => g.amount > 0),
+    rows: [
+      ...bill.items.map((i) => ({
+        label: ur ? i.name_ur : i.name_en,
+        value: `${i.amount < 0 ? '− ' : ''}Rs ${fmt(Math.abs(i.amount))}`,
+        seg: segOf(i.id),
+        tone: i.amount < 0 ? 'good' : undefined,
+      })),
+      { label: t('total_label'), value: `Rs ${fmt(bill.total)}`, strong: true, gap: true },
+    ],
+    footer: `${t('rates_chip', { date: app.tariff.effective_date })} · ${t('card_footer')}`,
+  });
+  const how = await shareCard(canvas, `bijlihisaab-bill-${state.units}u.png`, shareText());
+  if (how === 'downloaded') app.toast(t('card_saved'));
+}
+
 // ---------------------------------------------------------------- wiring
 
 function wire() {
@@ -419,6 +449,7 @@ function wire() {
   el('share-btn').addEventListener('click', share);
   el('scan-btn').addEventListener('click', startScan);
   el('solar-size-btn').addEventListener('click', openSolarSizer);
+  el('bill-image-btn').addEventListener('click', shareBillImage);
   el('link-btn').addEventListener('click', async () => {
     if (await copyText(scenarioLink())) app.toast(app.t('link_copied'));
   });

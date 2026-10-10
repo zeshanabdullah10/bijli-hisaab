@@ -222,3 +222,38 @@ export function readingDue(cycle, { today = isoDate(), after = 3, dismissed = ''
   if (days < after || daysBetween(today, c.endDate) < -3) return null;
   return { days, last };
 }
+
+/**
+ * The last twelve months of bills, summed up. `cliffs` counts months that
+ * landed just past a slab boundary (within `near` units) and what they cost
+ * over finishing at the boundary. Needs at least `min` bills in the window.
+ * @param {Array<{month: string, units: number, amount: number}>} bills
+ * @param {object} o
+ * @param {number[]} o.boundaries          slab boundaries (units)
+ * @param {(units: number) => number} o.billAt  tariff total for a unit count
+ */
+export function yearReview(bills, { boundaries, billAt, cap = 200, near = 15, min = 6 }) {
+  if (!bills.length) return null;
+  const latest = [...bills].map((b) => b.month).sort().at(-1);
+  const from = addMonths(latest, -11);
+  const year = bills.filter((b) => b.month >= from && b.month <= latest).sort((a, b) => a.month.localeCompare(b.month));
+  if (year.length < min) return null;
+  const sum = (k) => year.reduce((s, b) => s + b[k], 0);
+  const by = (k, dir) => year.reduce((m, b) => (dir * (b[k] - m[k]) > 0 ? b : m), year[0]);
+  let cliffMonths = 0;
+  let cliffCost = 0;
+  for (const b of year) {
+    const edge = [...boundaries].reverse().find((x) => x < b.units && b.units - x <= near);
+    if (edge === undefined) continue;
+    cliffMonths++;
+    cliffCost += Math.max(0, billAt(b.units) - billAt(edge));
+  }
+  return {
+    from: year[0].month, to: latest, months: year.length,
+    total: Math.round(sum('amount')), units: Math.round(sum('units')),
+    avg: Math.round(sum('amount') / year.length),
+    priciest: by('amount', 1), cheapest: by('amount', -1),
+    underCap: year.filter((b) => b.units <= cap).length,
+    cliffMonths, cliffCost: Math.round(cliffCost),
+  };
+}

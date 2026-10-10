@@ -1364,3 +1364,9 @@ dialog.sheet[open] { animation: sheet-in 0.4s var(--ease-out); }
 @media (max-width: 480px) {
   body:has(#home-chip:not([hidden])) .brand-name { display: none; }
 }
+
+/* ---- year in review ----------------------------------------------------------------------- */
+
+.yr-big { font-family: var(--display); font-size: 2.6rem; font-weight: 700; letter-spacing: -0.03em; margin: 6px 0 2px; }
+.year .tiles { margin-top: 14px; }
+.year .tile small { display: block; font-size: 0.76rem; color: var(--text-2); margin-top: 2px; }

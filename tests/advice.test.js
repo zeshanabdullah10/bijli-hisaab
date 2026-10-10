@@ -285,3 +285,19 @@ test('readingDue: nudges after three quiet days, not after the cycle, not when d
   assert.equal(readingDue({ startDate: '' }, { today: '2026-10-08' }), null);
   assert.equal(readingDue({ ...cycle, readings: [] }, { today: '2026-10-04' }).days, 3);
 });
+
+test('yearReview: totals, extremes, cliff months over the last twelve', async () => {
+  const { yearReview } = await import('../js/tracker.js');
+  const units = [150, 120, 110, 125, 160, 205, 280, 350, 390, 330, 240, 190, 150];
+  const bills = units.map((u, i) => ({ month: addMonths('2025-09', i), units: u, amount: u * 40 }));
+  const r = yearReview(bills, { boundaries: [100, 200, 300], billAt: (u) => u * 40 + (u > 200 ? 1000 : 0) });
+  assert.equal(r.months, 12, 'only the latest twelve');
+  assert.equal(r.from, '2025-10');
+  assert.equal(r.to, '2026-09');
+  assert.equal(r.priciest.units, 390);
+  assert.equal(r.cheapest.units, 110);
+  assert.equal(r.underCap, 6);
+  assert.equal(r.cliffMonths, 2, '205 and 110 land within 15 of a boundary');
+  assert.equal(r.cliffCost, 1200 + 400);
+  assert.equal(yearReview(bills.slice(0, 5), { boundaries: [], billAt: () => 0 }), null);
+});
