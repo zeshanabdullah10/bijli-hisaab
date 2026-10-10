@@ -16,6 +16,7 @@ export const defaultState = () => ({
     onATL: true,
     fpa: '',
     duty: 'auto', // electricity duty on the bill: 'auto' (company default) | 'yes' | 'no'
+    meter: 'standard', // 'standard' (slabs) | 'tou' (peak/off-peak, A-1(b))
   },
   units: 300,
   budget: 20000,
@@ -29,6 +30,7 @@ export const defaultState = () => ({
     cost: '',
   },
   cycle: { startDate: '', startReading: '', cycleDays: 30, readings: [] },
+  tou: { peak: '', offPeak: '', mdi: '' }, // time-of-use registers from the bill
   bills: [], // { id, month: 'YYYY-MM', units, amount }
   plan: { sel: {} }, // appliance id -> { qty, hours, watts }
   welcomed: false,
@@ -101,7 +103,7 @@ export function clearState() {
 // ---------------------------------------------------------------- households
 
 /** Fields that belong to one meter; everything else (language, theme) is global. */
-export const HOUSEHOLD_KEYS = ['profile', 'units', 'budget', 'actual', 'solar', 'cycle', 'bills', 'plan', 'nudgeDismissed'];
+export const HOUSEHOLD_KEYS = ['profile', 'units', 'budget', 'actual', 'solar', 'cycle', 'tou', 'bills', 'plan', 'nudgeDismissed'];
 
 const pick = (state) => JSON.parse(JSON.stringify(Object.fromEntries(HOUSEHOLD_KEYS.map((k) => [k, state[k]]))));
 

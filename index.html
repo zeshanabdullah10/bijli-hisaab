@@ -70,6 +70,7 @@
     <symbol id="i-air-conditioning" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M8 16a3 3 0 0 1-3 3m11-3a3 3 0 0 0 3 3m-7-3v4M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M7 13v-3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3"/></g></symbol>
     <symbol id="i-building-community" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 9l5 5v7H8v-4m0 4H3v-7l5-5m1 1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17h-8m0-14v.01M17 7v.01M17 11v.01M17 15v.01"/></symbol>
     <symbol id="i-arrow-right" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-6 6l6-6m-6-6l6 6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0-18 0"/><path d="M12 7v5l3 3"/></g></symbol>
     <symbol id="i-bell" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3H4a4 4 0 0 0 2-3v-3a7 7 0 0 1 4-6M9 17v1a3 3 0 0 0 6 0v-1"/></symbol>
     <symbol id="i-flag" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a5 5 0 0 1 7 0a5 5 0 0 0 7 0v9a5 5 0 0 1-7 0a5 5 0 0 0-7 0zm0 16v-7"/></symbol>
     <symbol id="i-device-floppy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M6 4h10l4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"/><path d="M10 14a2 2 0 1 0 4 0a2 2 0 1 0-4 0m4-10v4H8V4"/></g></symbol>
@@ -148,6 +149,16 @@
             <div class="slider-scale" id="slider-scale" aria-hidden="true"></div>
           </div>
 
+          <div id="tou-panel" class="tou-panel" hidden>
+            <p class="tou-hours" id="tou-hours"></p>
+            <div class="reg-grid">
+              <div class="reg"><label for="tou-peak" data-i18n="tou_peak">Peak units</label><input type="number" inputmode="decimal" id="tou-peak" class="tnum" min="0" max="5000" step="1" placeholder="0"></div>
+              <div class="reg"><label for="tou-off" data-i18n="tou_off">Off-peak units</label><input type="number" inputmode="decimal" id="tou-off" class="tnum" min="0" max="5000" step="1" placeholder="0"></div>
+              <div class="reg"><label for="tou-mdi" data-i18n="tou_mdi">MDI (kW), optional</label><input type="number" inputmode="decimal" id="tou-mdi" class="tnum" min="0" max="100" step="0.1" placeholder="0"></div>
+            </div>
+            <p class="group-hint" id="tou-note"></p>
+          </div>
+
           <div class="seg" id="ctype-seg" role="radiogroup" aria-label="Consumer type">
             <span class="seg-thumb" aria-hidden="true"></span>
             <label class="seg-item"><input type="radio" name="ctype" value="unprotected" checked><span data-i18n="type_unprotected">Unprotected</span></label>
@@ -212,7 +223,7 @@
           <div id="warnings"></div>
         </section>
 
-        <section class="card cliff">
+        <section class="card cliff" id="cliff-card">
           <header class="card-head">
             <svg class="head-ic" aria-hidden="true"><use href="#i-trending-up"/></svg>
             <h2 data-i18n="cliff_title">The slab cliff</h2>

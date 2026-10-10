@@ -3,7 +3,7 @@
 const ICONS = [
   'bolt', 'gauge', 'plug', 'flame', 'shield-check', 'wallet', 'receipt',
   'receipt-tax', 'trending-up', 'search', 'share', 'language', 'moon', 'sun',
-  'alert-triangle', 'check', 'external-link', 'minus', 'plus', 'info-circle', 'bell',
+  'alert-triangle', 'check', 'external-link', 'minus', 'plus', 'info-circle', 'bell', 'clock',
 ];
 
 const out = [];

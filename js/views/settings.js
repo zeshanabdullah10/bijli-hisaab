@@ -138,12 +138,14 @@ function buildSettings() {
           </div></div>
         <div class="row row-switch"><span class="row-label">${esc(t('filer_label'))}</span>
           <span class="switch"><input type="checkbox" id="s-atl" ${p.onATL ? 'checked' : ''} aria-label="${esc(t('filer_label'))}"><span class="switch-track"></span></span></div>
+        <div class="row"><label class="row-label" for="s-meter">${esc(t('meter_label'))}</label>
+          <select id="s-meter" class="row-select">${['standard', 'tou'].map((v) => `<option value="${v}" ${v === (p.meter || 'standard') ? 'selected' : ''}>${esc(t(`meter_${v}`))}</option>`).join('')}</select></div>
         <div class="row"><label class="row-label" for="s-duty">${esc(t('duty_label'))}</label>
           <select id="s-duty" class="row-select">${['auto', 'yes', 'no'].map((v) => `<option value="${v}" ${v === (p.duty || 'auto') ? 'selected' : ''}>${esc(t(`duty_${v}`, { def: t(app.disco.electricity_duty.on_bill ? 'duty_yes' : 'duty_no') }))}</option>`).join('')}</select></div>
         <div class="row"><label class="row-label" for="s-fpa">${esc(t('fpa_label'))}</label>
           <input type="number" inputmode="decimal" id="s-fpa" class="row-input tnum" min="-10" max="20" step="0.01" placeholder="auto" value="${esc(p.fpa)}"></div>
       </div>
-      <p class="group-hint">${esc(t('fpa_hint'))} ${esc(t('duty_hint'))}</p>
+      <p class="group-hint">${esc(t('fpa_hint'))} ${esc(t('meter_hint'))} ${esc(t('duty_hint'))}</p>
       ${app.disco.tariff_note_en ? `<p class="group-hint">${icon('info-circle')} ${esc(state.lang === 'ur' ? app.disco.tariff_note_ur : app.disco.tariff_note_en)}</p>` : ''}
 
       <p class="sheet-label">${esc(t('set_data'))}</p>
@@ -169,6 +171,7 @@ function buildSettings() {
   $('#s-load', dlg).addEventListener('input', (e) => app.change((s) => { s.profile.loadKw = num(e.target.value, { max: 50 }); }));
   dlg.querySelectorAll('input[name=s-phase]').forEach((r) => r.addEventListener('change', (e) => app.change((s) => { s.profile.phase = e.target.value; })));
   $('#s-atl', dlg).addEventListener('change', (e) => app.change((s) => { s.profile.onATL = e.target.checked; }));
+  $('#s-meter', dlg).addEventListener('change', (e) => { app.change((s) => { s.profile.meter = e.target.value; }); app.rebuild(); });
   $('#s-duty', dlg).addEventListener('change', (e) => app.change((s) => { s.profile.duty = e.target.value; }));
   $('#s-fpa', dlg).addEventListener('input', (e) => app.change((s) => { s.profile.fpa = e.target.value; }));
 

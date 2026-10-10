@@ -27,8 +27,9 @@ const prevMonth = () => {
   d.setMonth(d.getMonth() - 1);
   return isoDate(d).slice(0, 7);
 };
-const boundaries = () => app.tariff.consumer_classes.domestic.unprotected.slabs
-  .map((s) => s.up_to).filter((u) => u !== null);
+// Slab boundaries worth steering by; a peak/off-peak meter has none.
+const boundaries = () => (app.isTou() ? [] : app.tariff.consumer_classes.domestic.unprotected.slabs
+  .map((s) => s.up_to).filter((u) => u !== null));
 
 export const trackView = {
   id: 'track',
@@ -254,7 +255,7 @@ function renderRisk(c) {
   const host = $('#cy-risk', root);
   const type = state.profile.consumerType;
   host.hidden = true;
-  if (c.status !== 'ok' || type === 'unprotected') return;
+  if (c.status !== 'ok' || type === 'unprotected' || app.isTou()) return;
   const cap = app.tariff.consumer_classes.domestic[type].slabs.at(-1).up_to;
   if (c.projected <= cap) return;
 
@@ -352,7 +353,7 @@ function openRemindSheet() {
 function renderPlan(c, bounds, ur) {
   const { t } = app;
   const host = $('#cy-plan', root);
-  if (c.status !== 'ok') { host.hidden = true; return; }
+  if (c.status !== 'ok' || !bounds.length) { host.hidden = true; return; }
   host.hidden = false;
   const ctx = app.plainCtx();
   const projBill = billAt(ctx, c.projected);

@@ -320,6 +320,36 @@
         {
           "title": "K-Electric: Know your bill (bill lines, helpline 118 / 021-99000)",
           "url": "https://www.ke.com.pk/customer-services/know-your-bill/"
+        },
+        {
+          "title": "Mettis Global: K-Electric dispels rumours of peak-hour changes (Apr-Oct 6:30-10:30 PM, Nov-Mar 6-10 PM)",
+          "url": "https://mettisglobal.news/KElectric-dispels-rumours-of-peak-hour-changes-53744"
+        }
+      ],
+      "peak_hours": [
+        {
+          "months": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "from": 18.5,
+          "to": 22.5
+        },
+        {
+          "months": [
+            11,
+            12,
+            1,
+            2,
+            3
+          ],
+          "from": 18,
+          "to": 22
         }
       ]
     }

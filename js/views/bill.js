@@ -2,7 +2,7 @@
 // of the paper bill. Static markup lives in index.html; this file wires it.
 
 import { app } from '../app.js';
-import { computeBill, slabCliffInfo, maxUnitsForBudget } from '../tariff.js';
+import { computeBill, slabCliffInfo, maxUnitsForBudget, peakWindow } from '../tariff.js';
 import { renderCliffChart } from '../chart.js';
 import { buildInsights, compareClasses, diagnoseBill } from '../insights.js';
 import { fmt, fmt2 } from '../i18n.js';
@@ -33,6 +33,9 @@ const registersActive = () => {
   const s = app.state.solar;
   return s.enabled && (s.importedPeak !== '' || s.importedOffPeak !== '');
 };
+// Peak/off-peak meter with its registers typed in: they set the units.
+const touRegisters = () => app.isTou() && (app.state.tou.peak !== '' || app.state.tou.offPeak !== '');
+const unitsLocked = () => registersActive() || touRegisters();
 const typeName = (type) => app.t(`type_${type}`);
 const isNetMetering = () => app.state.solar.enabled && app.state.solar.mode === 'net_metering';
 
@@ -63,6 +66,9 @@ export const billView = {
       'solar-buyback-input': 'buyback', 'solar-buyback-peak': 'buybackPeak', 'solar-cost-input': 'cost',
     };
     for (const [id, key] of Object.entries(ids)) el(id).value = state.solar[key];
+    el('tou-peak').value = state.tou.peak;
+    el('tou-off').value = state.tou.offPeak;
+    el('tou-mdi').value = state.tou.mdi;
     el('source-list').innerHTML = app.tariff.sources
       .map((s) => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a></li>`).join('');
     if (!wired) { wire(); wired = true; }
@@ -104,6 +110,7 @@ export const billView = {
 
     renderInsights(ctx);
     renderCompare(ctx);
+    renderTou();
 
     const maxU = maxUnitsForBudget(billCtx, state.budget);
     el('budget-result').textContent = maxU === 0 ? t('budget_too_small') : t('budget_result', { units: fmt(maxU) });
@@ -121,7 +128,7 @@ export const billView = {
       consumerType: state.profile.consumerType,
       units: state.units,
       t,
-      onDrag: (u) => { if (!registersActive()) setUnits(u); },
+      onDrag: (u) => { if (!unitsLocked()) setUnits(u); },
     });
     renderSliderScale(cliff);
   },
@@ -135,7 +142,7 @@ function setUnits(u) {
 
 function syncUnitsControls() {
   const { state, t } = app;
-  const reg = registersActive();
+  const reg = unitsLocked();
   const label = state.solar.enabled ? t('solar_imports_label') : t('units_label');
   document.querySelector('label[for="units-input"]').textContent = label;
   el('units-input').setAttribute('aria-label', label);
@@ -172,7 +179,9 @@ function renderHero(bill, cliff) {
   lastTotal = bill.total;
   el('total-value').textContent = fmt(bill.total);
   el('effective-rate').textContent = `${t('effective_rate')}: Rs ${fmt2(bill.effectiveRatePerUnit)} ${t('per_unit')}`;
-  el('hero-chip').textContent = `${typeName(state.profile.consumerType)} · ${fmt(state.units)} ${ur ? 'یونٹس' : 'units'} · ${cliff.slabLabel}`;
+  el('hero-chip').textContent = app.isTou()
+    ? `${t('tou_short')} · ${fmt(state.units)} ${ur ? 'یونٹس' : 'units'} · ${Math.round(app.peakShare() * 100)}% ${t('tou_peak_word')}`
+    : `${typeName(state.profile.consumerType)} · ${fmt(state.units)} ${ur ? 'یونٹس' : 'units'} · ${cliff.slabLabel}`;
   el('mini-label').textContent = `${fmt(state.units)} ${ur ? 'یونٹس' : 'units'}`;
   el('mini-amount').textContent = `Rs ${fmt(bill.total)}`;
 
@@ -255,6 +264,17 @@ function renderInsights(ctx) {
   const { state, t } = app;
   const card = el('insights-card');
   if (isNetMetering() || state.units <= 0) { card.hidden = true; return; }
+  if (app.isTou()) {
+    // No slabs to fall off: the lever is when power is used, not how much.
+    const peak = Math.round(state.units * app.peakShare());
+    const shift = Math.min(peak, Math.max(10, Math.round(state.units * 0.1)));
+    const now = computeBill(ctx).total;
+    const moved = computeBill({ ...ctx, tou: { ...ctx.tou, peakShare: (peak - shift) / state.units } }).total;
+    card.hidden = false;
+    el('insights-list').innerHTML = `<div class="insight lvl-tip"><span class="insight-ic">${icon('sparkles')}</span>
+      <div class="insight-body"><p>${esc(t('ins_tou_shift', { n: shift, saving: fmt(now - moved), per: fmt2((now - moved) / shift) }))}</p></div></div>`;
+    return;
+  }
   const s = state.solar;
   const buyback = s.buyback === '' ? app.tariff.solar.modes.net_billing.buyback_per_kwh : Number(s.buyback);
   const list = buildInsights(ctx, { solarMode: s.enabled ? s.mode : null, buyback }).slice(0, 5);
@@ -278,7 +298,7 @@ function renderInsights(ctx) {
 function renderCompare(ctx) {
   const { state, t } = app;
   const card = el('compare-card');
-  if (isNetMetering()) { card.hidden = true; return; }
+  if (isNetMetering() || app.isTou()) { card.hidden = true; return; }
   card.hidden = false;
   const rows = compareClasses(ctx);
   const current = rows.find((r) => r.type === state.profile.consumerType);
@@ -332,6 +352,32 @@ function renderAudit(ctx) {
   }
   box.innerHTML = html;
   box.hidden = false;
+}
+
+// ---------------------------------------------------------------- time of use
+
+const hour = (h) => {
+  const hh = Math.floor(h) % 24;
+  const mm = Math.round((h % 1) * 60);
+  const ampm = hh >= 12 ? 'PM' : 'AM';
+  return `${hh % 12 || 12}${mm ? `:${String(mm).padStart(2, '0')}` : ''} ${ampm}`;
+};
+
+function renderTou() {
+  const { state, t } = app;
+  const on = app.isTou();
+  el('tou-panel').hidden = !on;
+  el('cliff-card').hidden = on;
+  el('slider-scale').hidden = on;
+  el('ctype-seg').hidden = on;
+  el('type-note').hidden = on;
+  if (!on) return;
+  const w = peakWindow(app.disco.peak_hours || app.tariff.tou.peak_hours, new Date().getMonth() + 1);
+  el('tou-hours').innerHTML = w
+    ? `${icon('clock')}<span>${esc(t('tou_hours', { from: hour(w.from), to: hour(w.to) }))}</span>` : '';
+  el('tou-note').textContent = touRegisters()
+    ? t('tou_note', { peak: app.tariff.tou.peak_rate, off: app.tariff.tou.offpeak_rate })
+    : t('tou_assumed', { pct: Math.round(app.peakShare() * 100) });
 }
 
 // ---------------------------------------------------------------- solar
@@ -474,6 +520,15 @@ function wire() {
   bind('solar-buyback-input', 'buyback');
   bind('solar-buyback-peak', 'buybackPeak');
   bind('solar-cost-input', 'cost');
+  const bindTou = (id, key) => el(id).addEventListener('input', (e) => app.change((s) => {
+    s.tou[key] = e.target.value;
+    if (key !== 'mdi' && touRegisters()) {
+      s.units = Math.min(2000, (Number(s.tou.peak) || 0) + (Number(s.tou.offPeak) || 0));
+    }
+  }));
+  bindTou('tou-peak', 'peak');
+  bindTou('tou-off', 'offPeak');
+  bindTou('tou-mdi', 'mdi');
 
   // Delegated one-tap actions rendered by insights and the audit.
   document.getElementById('view-bill').addEventListener('click', (e) => {

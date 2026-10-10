@@ -7,6 +7,11 @@
   "currency": "PKR",
   "sources": [
     {
+      "id": "nepra_tcd01",
+      "title": "NEPRA consumer-affairs decision TCD-01 (5 Mar 2025): TOU metering for sanctioned load of 5 kW and above; ex-WAPDA peak hours by season",
+      "url": "https://nepra.org.pk/consumer%20affairs/cad/Authority%20Decisions/PESCO/2025/04%20Apr/TCD-01%20PESCO%20&%20KHALID%20AYUB%2005-03-2025%20973.pdf"
+    },
+    {
       "id": "sro279",
       "title": "SRO 279(I)/2026 domestic slab rates, fixed charges, lifeline & minimum charges (via BijliBills NEPRA Tariff 2026 Explained)",
       "url": "https://bijlibills.com/nepra-tariff-2026-explained/"
@@ -155,5 +160,21 @@
       }
     },
     "source": "solar_reg"
+  },
+  "tou": {
+    "_note": "A-1(b) residential time-of-use, GoP applicable uniform rates (SRO 279(I)/2026 Annex-B-1 for ex-WAPDA, Annex-C for K-Electric; identical). No slabs or protected status. Fixed charges on 50% of sanctioned load or the MDI reading, whichever is higher.",
+    "applies_from_kw": 5,
+    "peak_rate": 46.85,
+    "offpeak_rate": 34.53,
+    "fixed_per_kw": 675,
+    "fixed_load_share": 0.5,
+    "source": "sro279_nepra",
+    "peak_hours": [
+      { "months": [12, 1, 2], "from": 17, "to": 21 },
+      { "months": [3, 4, 5], "from": 18, "to": 22 },
+      { "months": [6, 7, 8], "from": 19, "to": 23 },
+      { "months": [9, 10, 11], "from": 18, "to": 22 }
+    ],
+    "peak_hours_source": "nepra_tcd01"
   }
 }

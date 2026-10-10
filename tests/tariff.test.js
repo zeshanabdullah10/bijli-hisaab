@@ -283,3 +283,24 @@ test('electricity duty: off by default for ex-WAPDA since July 2025, on for K-El
     assert.ok(d.electricity_duty.on_bill_sources?.length, `${d.id} cites its duty status`);
   }
 });
+
+test('TOU (A-1(b)): flat peak/off-peak rates, fixed on half the load or MDI, no slabs', () => {
+  const b = computeBill({ ...ctx, units: 600, loadKw: 8, tou: { peakShare: 0.25 }, consumerType: 'protected' });
+  const lines = Object.fromEntries(b.items.map((i) => [i.id, i.amount]));
+  assert.equal(lines.energy, round(150 * 46.85 + 450 * 34.53));
+  assert.equal(lines.fixed, 675 * 4, '50% of 8 kW');
+  assert.equal(b.notices.filter((n) => n.code === 'over_cap').length, 0, 'no protected logic under TOU');
+  const mdi = computeBill({ ...ctx, units: 600, loadKw: 8, tou: { peakShare: 0.25, mdiKw: 6.2 } });
+  assert.equal(mdi.items.find((i) => i.id === 'fixed').amount, round(675 * 6.2));
+  // moving units out of peak lowers the bill
+  assert.ok(computeBill({ ...ctx, units: 600, loadKw: 8, tou: { peakShare: 0.1 } }).total < b.total);
+});
+
+test('peak hours: ex-WAPDA by season, K-Electric its own', async () => {
+  const { peakWindow } = await import('../js/tariff.js');
+  assert.deepEqual(peakWindow(tariff.tou.peak_hours, 7), { months: [6, 7, 8], from: 19, to: 23 });
+  assert.equal(peakWindow(tariff.tou.peak_hours, 1).from, 17);
+  const ke = discos.discos.find((d) => d.id === 'kelectric');
+  assert.equal(peakWindow(ke.peak_hours, 10).from, 18.5);
+  assert.equal(peakWindow(ke.peak_hours, 12).from, 18);
+});

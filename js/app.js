@@ -6,6 +6,11 @@ import { makeT } from './i18n.js';
 
 const listeners = { change: new Set(), rebuild: new Set() };
 
+// Until the bill's own registers are entered: four peak hours a day, but the
+// evening ones, so roughly a quarter of a home's units. Shown to the user as
+// an assumption and replaced as soon as they type their registers.
+export const DEFAULT_PEAK_SHARE = 0.25;
+
 export const app = {
   state: loadState(),
   tariff: null,
@@ -49,6 +54,7 @@ export const app = {
       onATL: p.onATL,
       phase: p.phase,
       dutyOnBill: p.duty === 'yes' ? true : p.duty === 'no' ? false : undefined,
+      tou: this.isTou() ? { peakShare: this.peakShare(), mdiKw: Number(this.state.tou.mdi) || 0 } : null,
       solar: withSolar && s.enabled
         ? {
             mode: s.mode,
@@ -62,6 +68,19 @@ export const app = {
           }
         : null,
     };
+  },
+
+  /** Peak/off-peak (A-1(b)) meter selected and the tariff models it. */
+  isTou() {
+    return this.state.profile.meter === 'tou' && !!this.tariff?.tou;
+  },
+
+  /** Share of units on the peak register: from the bill if entered, else the default. */
+  peakShare() {
+    const { peak, offPeak } = this.state.tou;
+    const p = Number(peak) || 0;
+    const o = Number(offPeak) || 0;
+    return p + o > 0 ? p / (p + o) : DEFAULT_PEAK_SHARE;
   },
 
   /** Same context without solar and without `units`, for what-if maths. */

@@ -58,6 +58,22 @@ function energyCharge(cls, units) {
   };
 }
 
+/** Time-of-use energy: flat peak and off-peak rates, no slabs. */
+function touEnergy(T, units, peakShare = 0) {
+  const peak = Math.round(units * Math.max(0, Math.min(1, peakShare)));
+  const off = units - peak;
+  return {
+    amount: round2(peak * T.peak_rate + off * T.offpeak_rate),
+    formula: `${peak} peak × Rs ${T.peak_rate.toFixed(2)}  +  ${off} off-peak × Rs ${T.offpeak_rate.toFixed(2)}`,
+    slabLabel: 'TOU',
+  };
+}
+
+/** Peak window for a month, from a list of { months, from, to } (hours, 24h). */
+export function peakWindow(peakHours, month) {
+  return (peakHours || []).find((w) => w.months.includes(month)) || null;
+}
+
 /**
  * Protected and lifeline status only holds while usage stays under the cap of
  * the class (200 / 100 units). Cross it and the month is billed as an ordinary
@@ -90,6 +106,10 @@ export function effectiveConsumerType(tariff, consumerType, units, warnings = []
  * @param {number|null} [p.fpaOverride] per-unit FPA from the paper bill, if known
  * @param {boolean} [p.onATL=true] consumer on the Active Taxpayer List (filer)
  * @param {'single'|'three'} [p.phase='single']  meter phase (minimum charge)
+ * @param {object|null} [p.tou]  time-of-use meter (A-1(b)): { peakShare, mdiKw }.
+ *   `units` is split into peak = units × peakShare and off-peak = the rest,
+ *   billed at flat peak/off-peak rates with no slabs and no protected status;
+ *   fixed charges apply to the larger of 50% of sanctioned load and the MDI.
  * @param {boolean} [p.dutyOnBill]  electricity duty printed on the bill; defaults
  *   to the DISCO's `electricity_duty.on_bill` (off for ex-WAPDA since July 2025)
  * @param {object|null} [p.solar]  rooftop solar:
@@ -107,7 +127,7 @@ export function effectiveConsumerType(tariff, consumerType, units, warnings = []
 export function computeBill(p) {
   const {
     tariff, disco, units: unitsIn = 0, consumerType = 'unprotected', loadKw = 5,
-    fpaOverride = null, onATL = true, phase = 'single', solar = null, dutyOnBill,
+    fpaOverride = null, onATL = true, phase = 'single', solar = null, dutyOnBill, tou = null,
   } = p;
 
   const warnings = [];
@@ -153,23 +173,34 @@ export function computeBill(p) {
 
   const cls = tariff.consumer_classes.domestic[consumerType];
   if (!cls) throw new Error(`Unknown consumerType: ${consumerType}`);
-  const effType = effectiveConsumerType(tariff, consumerType, units, warnings, notices);
+  const T = tou && tariff.tou;
+  const effType = T ? 'unprotected' : effectiveConsumerType(tariff, consumerType, units, warnings, notices);
   const effCls = tariff.consumer_classes.domestic[effType];
   const items = [];
   const src = (id) => (tariff.sources.find((s) => s.id === id) || {}).url || '';
 
   // --- 1. Energy charge -----------------------------------------------------
-  const energy = energyCharge(effCls, units);
+  const energy = T ? touEnergy(T, units, tou.peakShare) : energyCharge(effCls, units);
   items.push({
     id: 'energy', kind: 'charge',
     name_en: 'Electricity charges', name_ur: 'بجلی کے چارجز',
     amount: energy.amount, formula: energy.formula, slabLabel: energy.slabLabel,
-    source: src('sro279'),
+    source: src(T ? T.source : 'sro279'),
   });
 
   // --- 2. Fixed charge (per kW of sanctioned load) ---------------------------
+  if (T) {
+    const billedKw = round2(Math.max(T.fixed_load_share * loadKw, tou.mdiKw || 0));
+    items.push({
+      id: 'fixed', kind: 'charge',
+      name_en: 'Fixed charges', name_ur: 'ثابت چارجز',
+      amount: round2(T.fixed_per_kw * billedKw),
+      formula: `Rs ${T.fixed_per_kw}/kW × ${billedKw} kW (the larger of ${T.fixed_load_share * 100}% of ${loadKw} kW sanctioned load and the MDI reading)`,
+      source: src(T.source),
+    });
+  }
   const slab = findSlab(effCls.slabs, units);
-  const fixedPerKw = slab.fixed_per_kw || 0;
+  const fixedPerKw = T ? 0 : slab.fixed_per_kw || 0;
   if (fixedPerKw > 0) {
     const amount = round2(fixedPerKw * loadKw);
     items.push({
